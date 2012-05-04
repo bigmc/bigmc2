@@ -1,4 +1,4 @@
-package org.bigraph.bigmc;
+package org.bigraph.bigmc
 
 
 /** This trait represents a 'point' or 'link', which is either a name or

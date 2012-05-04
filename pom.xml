@@ -20,6 +20,24 @@
             <name>Scala-tools Maven2 Repository</name>
             <url>http://scala-tools.org/repo-releases</url>
         </repository>
+<repository>
+   <id>oss.sonatype.org</id> 
+   <name>releases</name> 
+   <url>http://oss.sonatype.org/content/repositories/releases</url> 
+ </repository>
+ 
+ <repository>
+   <id>central</id> 
+   <name>Maven repository</name> 
+   <url>http://repo1.maven.org/maven2</url> 
+ </repository>
+ 
+  <repository>
+   <id>ObjectWeb</id> 
+   <name>ObjectWeb repository</name> 
+   <url>http://maven.ow2.org/maven2</url> 
+ </repository>
+	
     </repositories>
     <pluginRepositories>
         <pluginRepository>
@@ -37,15 +55,22 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>4.8.1</version>
             <scope>test</scope>
         </dependency>
+	<dependency>
+            <groupId>org.specs2</groupId> 
+            <artifactId>specs2_2.9.1</artifactId> 
+            <version>1.9</version> 
+	    <scope>test</scope> 
+	</dependency>
     </dependencies>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
+		<version>2.15.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -55,14 +80,41 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <sourceDir>src/main/java</sourceDir>
+                    <sourceDir>src/main/scala</sourceDir>
                     <jvmArgs>
                         <jvmArg>-Xms64m</jvmArg>
                         <jvmArg>-Xmx1024m</jvmArg>
                     </jvmArgs>
                 </configuration>
             </plugin>
-        </plugins>
+        <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.7.2</version>
+        <executions>
+          <!-- The default-test execution that is included by default
+          will test the java code. The scala-test execution runs only
+          the scala tests. -->
+          <execution>
+            <id>scala-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <!-- Directory for scala tests -->
+              <testSourceDirectory>src/test/scala</testSourceDirectory>
+              <!-- The sorts of classes to consider as tests.
+              Using a pattern ending in .scala doesn't work even though
+              the maven-surefile-plugin doc indicates is should! -->
+              <includes>
+                <include>**/*Spec.class</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>  
+	</plugins>
     </build>
   
 </project>
