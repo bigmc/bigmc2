@@ -16,7 +16,11 @@ class Bigraph(val V : Set[Node],
 
     def compose(other : Bigraph) : Bigraph = {
         if(other.n != m) {
-            throw new IllegalArgumentException("Incompatible widths in composition")
+            throw new IllegalArgumentException("Incompatible interface widths in composition")
+        }
+
+        if(Y != other.X) {
+            throw new IllegalArgumentException("Incompatible names in interface composition")
         }
 
         val nV = V ++ other.V
@@ -36,6 +40,8 @@ class Bigraph(val V : Set[Node],
 
         return new Bigraph(nV,nE,nctrl,nprnt,nlink,other.m,other.X,n,Y)
     }
+
+    
 }
 
 
