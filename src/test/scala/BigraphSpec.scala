@@ -54,7 +54,7 @@ trait bgtest extends Scope {
 	val e1 : Set[Edge] = Set(edge1)
 	val e2 : Set[Edge] = Set()
 
-	val ns : Set[Link] = Set()
+	val ns : Set[Name] = Set()
 
 	val ctrla = new Control("a")
 	val ctrlb = new Control("b")
@@ -70,8 +70,13 @@ trait bgtest extends Scope {
 	val link1 : Map[Link,Link] = Map(new Name("p") -> edge1, new Port(a,0) -> edge1)
 	val link2 : Map[Link,Link] = Map(new Port(x,0) -> new Name("p"))
 
-	val b1 = new Bigraph(v1,e1,ctrl1,prnt1,link1,2,ns,2,ns)
-	val b2 = new Bigraph(v2,e2,ctrl2,prnt2,link2,0,ns,2,ns)
+	val inner1 = new Face(2,Set(new Name("p")))
+	val inner2 = new Face(0,ns)
+	val outer1 = new Face(2,ns)
+	val outer2 = new Face(2,Set(new Name("p")))
+
+	val b1 = new Bigraph(v1,e1,ctrl1,prnt1,link1,inner1,outer1)
+	val b2 = new Bigraph(v2,e2,ctrl2,prnt2,link2,inner2,outer2)
 
 	val b1b2 = b1.compose(b2)
 }

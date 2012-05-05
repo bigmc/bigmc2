@@ -6,20 +6,18 @@ class Bigraph(val V : Set[Node],
               val ctrl : Map[Node,Control], 
               val prnt : Map[Place,Place], 
               val link : Map[Link,Link],
-              val m : Int,
-              val X : Set[Link],
-              val n : Int,
-              val Y : Set[Link]
+              val inner : Face,
+              val outer : Face
               ) {
 
-    override def toString = "("+V+","+E+","+ctrl+","+prnt+","+link+"+) : <"+m+","+X+"> -> <"+n+","+Y+">"
+    override def toString = "("+V+","+E+","+ctrl+","+prnt+","+link+"+) : "+inner+" -> " + outer 
 
     def compose(other : Bigraph) : Bigraph = {
-        if(other.n != m) {
+        if(other.outer.width != inner.width) {
             throw new IllegalArgumentException("Incompatible interface widths in composition")
         }
 
-        if(Y != other.X) {
+        if(other.outer.names != inner.names) {
             throw new IllegalArgumentException("Incompatible names in interface composition")
         }
 
@@ -38,7 +36,7 @@ class Bigraph(val V : Set[Node],
         val nprnt = nprnt1 ++ nprnt2
         val nlink = link ++ other.link
 
-        return new Bigraph(nV,nE,nctrl,nprnt,nlink,other.m,other.X,n,Y)
+        return new Bigraph(nV,nE,nctrl,nprnt,nlink,other.inner,outer)
     }
 
     
