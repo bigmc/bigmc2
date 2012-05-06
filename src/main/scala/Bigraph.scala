@@ -34,9 +34,19 @@ class Bigraph(val V : Set[Node],
             }
         }
         val nprnt = nprnt1 ++ nprnt2
-        val nlink = link ++ other.link
+        val nlinkf = for((x,y) <- other.link) yield {
+            y match {
+                case z : Name => (x,link(z))
+                case z => (x,y)
+            }
+        }
 
-        return new Bigraph(nV,nE,nctrl,nprnt,nlink,other.inner,outer)
+        val nlinkg = link.filter (p => p._1 match {
+                case z : Name => false
+                case w => true
+            }) 
+        
+        return new Bigraph(nV,nE,nctrl,nprnt,nlinkf ++ nlinkg,other.inner,outer)
     }
 
     
