@@ -9,57 +9,37 @@ import org.bigraph.bigmc._
 import scala.collection.immutable.Map
 
 @RunWith(classOf[JUnitRunner])
-class BigraphSpecTest extends SpecificationWithJUnit {
+class MatchSpecTest extends SpecificationWithJUnit {
 
 	"A composite bigraph object b1 o b2" should {
-		"compose the node set" in new bgtest {
+		"compose the node set" in new matchtest {
 			b1b2.V.size mustEqual 4
 		}
-		"compose the edge set" in new bgtest {
+		"compose the edge set" in new matchtest {
 			b1b2.E.size mustEqual 1
 		}
-		"compose the ctrl map" in new bgtest {
+		"compose the ctrl map" in new matchtest {
 			b1b2.ctrl.size mustEqual 4
 		}
-		"compose the parent map for hole 0" in new bgtest {
+		"compose the parent map for hole 0" in new matchtest {
 			b1b2.prnt(x) mustEqual a
 		}
-		"compose the parent map for hole 1" in new bgtest {
+		"compose the parent map for hole 1" in new matchtest {
 			b1b2.prnt(y) mustEqual b
 		}
-		"compose the link graph" in new bgtest {
+		"compose the link graph" in new matchtest {
 			b1b2.link.size mustEqual 2
 		}
-		"include a link from (a,0) to e1" in new bgtest {
+		"include a link from (a,0) to e1" in new matchtest {
 			b1b2.link(new Port(a,0)) == edge1
 		}
-		"include a link from (x,0) to e1" in new bgtest {
+		"include a link from (x,0) to e1" in new matchtest {
 			b1b2.link(new Port(x,0)) == edge1
-		}
-	}
-	"Tensor composition" should {
-		"have correct inner width" in new bgtest {
-			b1xb2.inner.width mustEqual (b1.inner.width + b2.inner.width)
-		}
-		"have correct outer width" in new bgtest {
-			b1xb2.outer.width mustEqual (b1.outer.width + b2.outer.width)
-		}
-		"have correct inner names" in new bgtest {
-			b1xb2.inner.names.size mustEqual 1
-		}
-		"have correct outer names" in new bgtest {
-			b1xb2.outer.names.size mustEqual 1
-		}
-		"renumber region 0->2 in the parent map" in new bgtest {
-			b1xb2.prnt(x) mustEqual new Region(2)
-		}
-		"renumber region 1->3 in the parent map" in new bgtest {
-			b1xb2.prnt(y) mustEqual new Region(3)
 		}
 	}
 }
 
-trait bgtest extends Scope {
+trait matchtest extends Scope {
 	val a = new Node(1)
 	val b = new Node(2)
 	val x = new Node(3)
@@ -98,7 +78,6 @@ trait bgtest extends Scope {
 	val b2 = new Bigraph(v2,e2,ctrl2,prnt2,link2,inner2,outer2)
 
 	val b1b2 = b1.compose(b2)
-
-	val b1xb2 = b1.tensor(b2)
 }
+
 

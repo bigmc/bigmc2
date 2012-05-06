@@ -49,6 +49,30 @@ class Bigraph(val V : Set[Node],
         return new Bigraph(nV,nE,nctrl,nprnt,nlinkf ++ nlinkg,other.inner,outer)
     }
 
+    def tensor(other : Bigraph) : Bigraph = {
+        val nctrl = ctrl ++ other.ctrl
+        val nV = V ++ other.V
+        val nE = E ++ other.E
+
+        val nprnt = prnt ++ (for((a,b) <- other.prnt) yield {
+            (a match {
+                case ap : Hole => new Hole(ap.id + inner.width)
+                case _ => a
+             },
+             b match {
+                case bp : Region => new Region(bp.id + outer.width)
+                case _ => b
+             }
+            )
+        })
+
+        var nlink = link ++ other.link
+
+        var ninner = new Face(inner.width+other.inner.width, inner.names ++ other.inner.names)
+        var nouter = new Face(outer.width+other.outer.width, outer.names ++ other.outer.names)
+
+        return new Bigraph(nV,nE,nctrl,nprnt,nlink,ninner,nouter)
+    }
     
 }
 
