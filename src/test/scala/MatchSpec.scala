@@ -5,36 +5,16 @@ import org.junit.runner._
 import org.specs2.runner._
 
 import org.bigraph.bigmc._
+import org.bigraph.bigmc.matcher._
 
 import scala.collection.immutable.Map
 
 @RunWith(classOf[JUnitRunner])
 class MatchSpecTest extends SpecificationWithJUnit {
 
-	"A composite bigraph object b1 o b2" should {
-		"compose the node set" in new matchtest {
-			b1b2.V.size mustEqual 4
-		}
-		"compose the edge set" in new matchtest {
-			b1b2.E.size mustEqual 1
-		}
-		"compose the ctrl map" in new matchtest {
-			b1b2.ctrl.size mustEqual 4
-		}
-		"compose the parent map for hole 0" in new matchtest {
-			b1b2.prnt(x) mustEqual a
-		}
-		"compose the parent map for hole 1" in new matchtest {
-			b1b2.prnt(y) mustEqual b
-		}
-		"compose the link graph" in new matchtest {
-			b1b2.link.size mustEqual 2
-		}
-		"include a link from (a,0) to e1" in new matchtest {
-			b1b2.link(new Port(a,0)) == edge1
-		}
-		"include a link from (x,0) to e1" in new matchtest {
-			b1b2.link(new Port(x,0)) == edge1
+	"Matching G = C o R o D" should {
+		"find 2 occurences" in new matchtest {
+			matches.size mustEqual 2
 		}
 	}
 }
@@ -77,7 +57,8 @@ trait matchtest extends Scope {
 	val b1 = new Bigraph(v1,e1,ctrl1,prnt1,link1,inner1,outer1)
 	val b2 = new Bigraph(v2,e2,ctrl2,prnt2,link2,inner2,outer2)
 
-	val b1b2 = b1.compose(b2)
+    val matcher = new Matcher(b1,b2)
+    val matches = matcher.all
 }
 
 
