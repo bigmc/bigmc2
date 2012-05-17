@@ -67,10 +67,20 @@ case class THole(index:Int) extends Term { }
 
 object MetaCalcParser extends StandardTokenParsers {
     lexical.delimiters ++= List(".","$","[","]","(",")","||","|","|->")
+    lexical.reserved ++= List("nil","0")
 
-    def value = "$" ~ numericLit ^^ { case a ~ b => THole(b.toInt) }
+    lazy val hole = "$" ~ numericLit ^^ { case a ~ b => THole(b.toInt) }
+    lazy val nil = "nil" ^^^ { TNil() }
+    lazy val zero = "0" ^^^ { TZero() }
+    lazy val ctrl = ident ^^ { s => new Ident(s) }
 
-    def expr = value
+    lazy val prefix = ctrl ~ ("." ~> expr) ^^ {
+        case c ~ s => TPrefix(c,List(),s)
+    }
+
+    lazy val terminal = hole | nil | zero | prefix
+
+    lazy val expr : Parser[Term] = terminal | ("(" ~> expr <~ ")")
 
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)

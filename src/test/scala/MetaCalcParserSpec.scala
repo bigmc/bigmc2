@@ -20,6 +20,33 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "parse '$1'" in {
             MetaCalcParser.test("$1")
         }
+        "parse 'nil'" in {
+            MetaCalcParser.test("nil")
+        }
+        "parse '0'" in {
+            MetaCalcParser.test("0")
+        }
+        "parse 'nil | nil'" in {
+            MetaCalcParser.test("nil | nil")
+        }
+        "parse '(nil)'" in {
+            MetaCalcParser.test("(nil)")
+        }
+        "parse '0 || 0'" in {
+            MetaCalcParser.test("0 || 0")
+        }
+        "parse '(0 || 0)'" in {
+            MetaCalcParser.test("(0 || 0)")
+        }
+        "parse '$0 || 0'" in {
+            MetaCalcParser.test("$0 || 0")
+        }
+        "parse 'a.nil'" in {
+            MetaCalcParser.test("a.nil")
+        }
+        "parse 'a.b.nil'" in {
+            MetaCalcParser.test("a.b.nil")
+        }
 	}
 }
 
