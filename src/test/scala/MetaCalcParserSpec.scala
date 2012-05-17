@@ -6,7 +6,7 @@ import org.specs2.runner._
 
 import org.bigraph.bigmc._
 
-import org.bigraph.parser._
+import org.bigraph.bigmc.parser._
 
 import scala.collection.immutable.Map
 

@@ -37,37 +37,44 @@ u ::= x parent-of y
 
 */
 
+
+class Ident(id:String) {
+    override def toString:String = id
+}
+
 sealed abstract class Term {
 }
 
 // lhs || rhs
-case class TWPar(lhs:Term, rhs:Term) { }
+case class TWPar(lhs:Term, rhs:Term) extends Term { }
 // 0, the nil term for wide terms.
-case class TZero { }
+case class TZero extends Term { }
 // (v ident) term, name restriction for wide contexts
-case class TWideNew(ident:Ident, body:Term) { }
+case class TWideNew(ident:Ident, body:Term) extends Term { }
 // [identL |-> identR], links.
-case class TLink(identL:Ident, identR:Ident) { }
+case class TLink(identL:Ident, identR:Ident) extends Term { }
 // c[idents].term, prefixing
-case class TPrefix(control: Ident, idents: List[Ident], suffix : Term) { }
+case class TPrefix(control: Ident, idents: List[Ident], suffix : Term) extends Term { }
 // p | p, parallel for prime contexts.
-case class TPar(lhs:Term, rhs:Term) { }
+case class TPar(lhs:Term, rhs:Term) extends Term { }
 // nil for prime processes.
-case class TNil { }
+case class TNil extends Term { }
 // (v ident) term, name restriction for prime contexts
-case class TNew(ident:Ident, body:Term) { }
+case class TNew(ident:Ident, body:Term) extends Term { }
 // $n, hole with index n
-case class THole(index:Int) { }
+case class THole(index:Int) extends Term { }
 
 
 object MetaCalcParser extends StandardTokenParsers {
     lexical.delimiters ++= List(".","$","[","]","(",")","||","|","|->")
 
-    def value = "$" ~ numericLit ^^ { s => THole(s.toInt) }
+    def value = "$" ~ numericLit ^^ { case a ~ b => THole(b.toInt) }
+
+    def expr = value
 
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)
-        phrase(value)(tokens)
+        phrase(expr)(tokens)
     }
     
     def apply(s:String):Term = {
