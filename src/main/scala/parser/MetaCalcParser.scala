@@ -7,7 +7,7 @@ import scala.util.parsing.combinator.syntactical.StandardTokenParsers
  r ::= r || r
    ::= p
    ::= 0
-   ::= (vx) r
+   ::= (νx) r
    ::= [x |-> y]
    ::= (r)
  
@@ -15,7 +15,7 @@ p ::= c[nameList].p
   ::= c.p
   ::= p | p
   ::= nil
-  ::= (vx) p
+  ::= (νx) p (keep in mind that's a 'ν' character, not a 'v'!)
   ::= $n
   ::= (p)
 
@@ -46,41 +46,63 @@ sealed abstract class Term {
 }
 
 // lhs || rhs
-case class TWPar(lhs:Term, rhs:Term) extends Term { }
+case class TWPar(lhs:Term, rhs:Term) extends Term {
+    override def toString = "(" + lhs + " || " + rhs + ")"
+}
 // 0, the nil term for wide terms.
-case class TZero extends Term { }
+case class TZero extends Term {
+    override def toString = "0" 
+}
 // (v ident) term, name restriction for wide contexts
-case class TWideNew(ident:Ident, body:Term) extends Term { }
+case class TWideNew(ident:Ident, body:Term) extends Term {
+    override def toString = "(ν" + ident + ")" + body
+}
 // [identL |-> identR], links.
-case class TLink(identL:Ident, identR:Ident) extends Term { }
+case class TLink(identL:Ident, identR:Ident) extends Term { 
+    override def toString = "[" + identL + " |-> " + identR + "]"
+}
 // c[idents].term, prefixing
-case class TPrefix(control: Ident, idents: List[Ident], suffix : Term) extends Term { }
+case class TPrefix(control: Ident, idents: List[Ident], suffix : Term) extends Term {
+    override def toString = control + "[" + idents + "]." + suffix
+}
 // p | p, parallel for prime contexts.
-case class TPar(lhs:Term, rhs:Term) extends Term { }
+case class TPar(lhs:Term, rhs:Term) extends Term {
+    override def toString = "(" + lhs + " | " + rhs + ")"
+}
 // nil for prime processes.
-case class TNil extends Term { }
+case class TNil extends Term {
+    override def toString = "nil"
+}
 // (v ident) term, name restriction for prime contexts
-case class TNew(ident:Ident, body:Term) extends Term { }
+case class TNew(ident:Ident, body:Term) extends Term {
+    override def toString = "(ν" + ident + ")" + body
+}
 // $n, hole with index n
-case class THole(index:Int) extends Term { }
+case class THole(index:Int) extends Term {
+    override def toString = "$" + index
+}
 
 
 object MetaCalcParser extends StandardTokenParsers {
-    lexical.delimiters ++= List(".","$","[","]","(",")","||","|","|->")
+    lexical.delimiters ++= List(".",",","$","[","]","(",")","||","|","|->","(ν")
     lexical.reserved ++= List("nil","0")
 
     lazy val hole = "$" ~ numericLit ^^ { case a ~ b => THole(b.toInt) }
     lazy val nil = "nil" ^^^ { TNil() }
     lazy val zero = "0" ^^^ { TZero() }
-    lazy val ctrl = ident ^^ { s => new Ident(s) }
+    lazy val ctrl = (ident ~ ("[" ~> nameList <~ "]")) ^^ { case i ~ n => (new Ident(i), n) } | (ident ^^ { s => (new Ident(s),List()) })
 
     lazy val prefix = ctrl ~ ("." ~> expr) ^^ {
-        case c ~ s => TPrefix(c,List(),s)
+        case (c,n) ~ s => TPrefix(c,n,s)
     }
 
-    lazy val terminal = hole | nil | zero | prefix
+    lazy val nameList : Parser[List[Ident]] = ident ~ ("," ~> nameList) ^^ { case i ~ n => (new Ident(i)) :: n } | ident ^^ ( i => List(new Ident(i)) )
 
-    lazy val expr : Parser[Term] = terminal | ("(" ~> expr <~ ")")
+    lazy val nu = ("(ν" ~> ident <~ ")") ~ expr ^^ { case i ~ e => TNew(new Ident(i), e) }
+
+    lazy val terminal = hole | nil | prefix | nu
+
+    lazy val expr : Parser[Term] = ("(" ~> expr <~ ")") | terminal
 
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)
@@ -97,7 +119,7 @@ object MetaCalcParser extends StandardTokenParsers {
 
     def test(exprstr: String) = {
         parse(exprstr) match {
-            case Success(tree, _) => true
+            case Success(tree, _) => {println(tree); true}
             case e: NoSuccess => {
                 Console.err.println(e);
                 false

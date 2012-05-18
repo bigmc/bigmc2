@@ -47,6 +47,24 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "parse 'a.b.nil'" in {
             MetaCalcParser.test("a.b.nil")
         }
+        "parse 'a[x].nil'" in {
+            MetaCalcParser.test("a[x].nil")
+        }
+        "parse 'a[x,y].nil'" in {
+            MetaCalcParser.test("a[x,y].nil")
+        }
+        "parse '(νx)nil'" in {
+            MetaCalcParser.test("(νx)nil")
+        }
+        "parse '(νx) nil'" in {
+            MetaCalcParser.test("(νx) nil")
+        }
+        "parse '(νx) a[x].nil'" in {
+            MetaCalcParser.test("(νx) a[x].nil")
+        }
+        "parse '(νx) a[x].nil | (νy) a[y].nil'" in {
+            MetaCalcParser.test("(νx) a[x].nil | (νy) a[y].nil")
+        }
 	}
 }
 
