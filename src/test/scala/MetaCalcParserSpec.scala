@@ -24,7 +24,7 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             MetaCalcParser.test("nil")
         }
         "parse '0'" in {
-            MetaCalcParser.test("0")
+            MetaCalcParser.test("zero")
         }
         "parse 'nil | nil'" in {
             MetaCalcParser.test("nil | nil")
@@ -33,7 +33,7 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             MetaCalcParser.test("(nil)")
         }
         "parse '0 || 0'" in {
-            MetaCalcParser.test("0 || 0")
+            MetaCalcParser.test("zero || zero")
         }
         "parse '(0 || 0)'" in {
             MetaCalcParser.test("(0 || 0)")
@@ -67,6 +67,27 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         }
         "parse 'a.nil | b.nil'" in {
             MetaCalcParser.test("a.nil | b.nil")
+        }
+        "parse '[x |-> y]'" in {
+            MetaCalcParser.test("[x |-> y]")
+        }
+        "parse '[x |-> y] || 0'" in {
+            MetaCalcParser.test("[x |-> y] || 0")
+        }
+        "parse 'a.(x | y | $0)'" in {
+            MetaCalcParser.test("a.(x | y | $0)")
+        }
+        "parse 'a.(x | y | $0) || a.b.c'" in {
+            MetaCalcParser.test("a.(x | y | $0) || a.b.c")
+        }
+        "parse 'a.(x | y | $0) || a.(b | c | $1)'" in {
+            MetaCalcParser.test("a.(x | y | $0) || a.(b | c | $1)")
+        }
+        "parse 'a[t].(x[u] | y[v] | $0) || a[w].(b | c[z] | $1)'" in {
+            MetaCalcParser.test("a[t].(x[u] | y[v] | $0) || a[w].(b | c[z] | $1)")
+        }
+        "parse 'send[c,x].$0 || recv[c,z].$1 || [x |-> z]'" in {
+            MetaCalcParser.test("send[c,x].$0 || recv[c,z].$1 || [x |-> z]")
         }
 	}
 }

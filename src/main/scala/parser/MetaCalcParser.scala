@@ -63,7 +63,7 @@ case class TLink(identL:Ident, identR:Ident) extends Term {
 }
 // c[idents].term, prefixing
 case class TPrefix(control: Ident, idents: List[Ident], suffix : Term) extends Term {
-    override def toString = control + "[" + idents + "]." + suffix
+    override def toString = control + "[" + idents.mkString(",") + "]." + suffix
 }
 // p | p, parallel for prime contexts.
 case class TPar(lhs:Term, rhs:Term) extends Term {
@@ -85,17 +85,18 @@ case class THole(index:Int) extends Term {
 
 object MetaCalcParser extends StandardTokenParsers {
     lexical.delimiters ++= List(".",",","$","[","]","(",")","||","|","|->","(ν")
-    lexical.reserved ++= List("nil","0")
+    lexical.reserved ++= List("nil")
 
-    lazy val hole = "$" ~ numericLit ^^ { case a ~ b => THole(b.toInt) }
+    lazy val hole = "$" ~> numericLit ^^ { b => THole(b.toInt) }
     lazy val nil = "nil" ^^^ { TNil() }
-    lazy val zero = "0" ^^^ { TZero() }
+    lazy val wnil = numericLit ^^ { case "0" => TZero()
+                                    case n => TPrefix(new Ident(n),List(),TNil()) }
     lazy val ctrl = (ident ~ ("[" ~> nameList <~ "]")) ^^ { case i ~ n => (new Ident(i), n) } | (ident ^^ { s => (new Ident(s),List()) })
 
     lazy val prefix : Parser[Term] = ctrl ~ ("." ~> ("(" ~> expr <~ ")")) ^^ { case (c,n) ~ s => TPrefix(c,n,s) }  | 
         ctrl ~ ("." ~> prefix) ^^ {
             case (c,n) ~ s => TPrefix(c,n,s)
-        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil
+        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil | hole
 
     lazy val nameList : Parser[List[Ident]] = ident ~ ("," ~> nameList) ^^ { case i ~ n => (new Ident(i)) :: n } | ident ^^ ( i => List(new Ident(i)) )
 
@@ -103,13 +104,21 @@ object MetaCalcParser extends StandardTokenParsers {
 
     lazy val par = terminal ~ ("|" ~> expr) ^^ { case e1 ~ e2 => TPar(e1,e2) }
 
-    lazy val terminal = hole | nil | prefix | nu 
+    lazy val terminal = hole | nil | wnil | prefix | nu 
 
     lazy val expr : Parser[Term] = par | terminal | "(" ~> expr <~ ")"
 
+    lazy val link = "[" ~> (ident ~ ("|->" ~> ident)) <~ "]" ^^ { case i1 ~ i2 => TLink(new Ident(i1), new Ident(i2)) }
+
+    lazy val wterm : Parser[Term] = link | expr
+
+    lazy val wpar = wterm ~ ("||" ~> wexpr) ^^ { case e1 ~ e2 => TWPar(e1,e2) }
+
+    lazy val wexpr : Parser[Term] = wpar | wterm | "(" ~> wexpr <~ ")"
+
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)
-        phrase(expr)(tokens)
+        phrase(wexpr)(tokens)
     }
     
     def apply(s:String):Term = {
