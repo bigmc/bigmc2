@@ -92,17 +92,20 @@ object MetaCalcParser extends StandardTokenParsers {
     lazy val zero = "0" ^^^ { TZero() }
     lazy val ctrl = (ident ~ ("[" ~> nameList <~ "]")) ^^ { case i ~ n => (new Ident(i), n) } | (ident ^^ { s => (new Ident(s),List()) })
 
-    lazy val prefix = ctrl ~ ("." ~> expr) ^^ {
-        case (c,n) ~ s => TPrefix(c,n,s)
-    }
+    lazy val prefix : Parser[Term] = ctrl ~ ("." ~> ("(" ~> expr <~ ")")) ^^ { case (c,n) ~ s => TPrefix(c,n,s) }  | 
+        ctrl ~ ("." ~> prefix) ^^ {
+            case (c,n) ~ s => TPrefix(c,n,s)
+        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil
 
     lazy val nameList : Parser[List[Ident]] = ident ~ ("," ~> nameList) ^^ { case i ~ n => (new Ident(i)) :: n } | ident ^^ ( i => List(new Ident(i)) )
 
     lazy val nu = ("(ν" ~> ident <~ ")") ~ expr ^^ { case i ~ e => TNew(new Ident(i), e) }
 
-    lazy val terminal = hole | nil | prefix | nu
+    lazy val par = terminal ~ ("|" ~> expr) ^^ { case e1 ~ e2 => TPar(e1,e2) }
 
-    lazy val expr : Parser[Term] = ("(" ~> expr <~ ")") | terminal
+    lazy val terminal = hole | nil | prefix | nu 
+
+    lazy val expr : Parser[Term] = par | terminal | "(" ~> expr <~ ")"
 
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)
