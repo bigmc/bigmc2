@@ -2,7 +2,7 @@ package org.bigraph.bigmc
 
 class Region(val id : Int) extends Place {
 
-	override def toString = "Region@" + id
+	override def toString = ""+id
 	override def isRegion = true
 
     override def equals(other : Any) : Boolean = other match {

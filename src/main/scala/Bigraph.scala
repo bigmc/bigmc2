@@ -10,7 +10,7 @@ class Bigraph(val V : Set[Node],
               val outer : Face
               ) {
 
-    override def toString = "("+V+","+E+","+ctrl+","+prnt+","+link+"+) : "+inner+" -> " + outer 
+    override def toString = "({"+V.mkString(",")+"},{"+E.mkString(",")+"},{"+ctrl.mkString(",")+"},{"+prnt.mkString(",")+"},{"+link.mkString(",")+"}) : "+inner+" → " + outer 
 
     def compose(other : Bigraph) : Bigraph = {
         if(other.outer.width != inner.width) {

@@ -43,6 +43,17 @@ class Ident(id:String) {
 }
 
 sealed abstract class Term {
+    def normalise(t : Term) : Term = t match {
+        case TWPar(TZero(),l) => TWPar(normalise(l),TZero())
+        case TWPar(l,TWPar(m,n)) => TWPar(TWPar(normalise(l),normalise(m)),normalise(n))
+        case TWPar(l,r) => TWPar(normalise(l),normalise(r))
+        case TPar(TNil(),l) => normalise(l)
+        case TPar(l,TNil()) => normalise(l)
+        case TPar(l,TPar(m,n)) => TPar(TPar(normalise(l),normalise(m)),normalise(n))
+        case TPar(l,r) => TPar(normalise(l),normalise(r))
+        case TPrefix(c,l,s) => TPrefix(c,l,normalise(s))
+        case x => x
+    }
 }
 
 // lhs || rhs
@@ -80,6 +91,57 @@ case class TNew(ident:Ident, body:Term) extends Term {
 // $n, hole with index n
 case class THole(index:Int) extends Term {
     override def toString = "$" + index
+}
+
+class BigraphTranslator {
+    var nodes : Set[Node] = Set()
+    var nodeId = 0
+    var ctrl : Map[Node,Control] = Map()
+    var prnt : Map[Place,Place] = Map()
+    var outerWidth = 1
+    var innerWidth = 0
+
+    def translate(t : Term, parent : Place) : Unit = t match {
+        case TWPar(l,r) => {
+            translate(l,parent)
+            outerWidth = outerWidth + 1
+            translate(r,new Region(outerWidth))
+        }
+        case TZero() => ()
+        case TPrefix(c,i,suff) => {
+            val n = new Node(nodeId)
+            nodeId = nodeId + 1
+            nodes += n
+            val cn = new Control(c.toString)
+            ctrl += n -> cn
+            prnt += n -> parent
+
+            translate(suff,n)
+        }
+        case THole(i) => {
+            if(innerWidth < i+1) {
+                innerWidth = i+1
+            }
+
+            prnt += (new Hole(i)) -> parent
+        }
+        case TPar(l,r) => {
+            translate(l,parent)
+            translate(r,parent)
+        }
+        case x => ()
+    }
+
+    def toBigraph(t : Term) : Bigraph = {
+        translate(t.normalise(t),new Region(1))
+
+        val b = new Bigraph(nodes,Set(),ctrl,prnt,Map(),new Face(innerWidth,Set()), new Face(outerWidth,Set()))
+
+        println(b)
+
+        b
+    }
+    
 }
 
 
@@ -131,12 +193,18 @@ object MetaCalcParser extends StandardTokenParsers {
 
     def test(exprstr: String) = {
         parse(exprstr) match {
-            case Success(tree, _) => {println(tree); true}
+            case Success(tree, _) => {println(tree); println("NF: " + tree.normalise(tree)); true}
             case e: NoSuccess => {
                 Console.err.println(e);
                 false
             }
         }
+    }
+
+    def toBigraph(s:String) : Bigraph = {
+        val t = apply(s)
+        val b = new BigraphTranslator()
+        b.toBigraph(t)
     }
 }
 

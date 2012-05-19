@@ -12,6 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <encoding>UTF-8</encoding>
   </properties>
 
   <repositories>
@@ -84,6 +85,7 @@
                     <jvmArgs>
                         <jvmArg>-Xms64m</jvmArg>
                         <jvmArg>-Xmx1024m</jvmArg>
+                        <jvmArg>-Dfile.encoding=UTF-8</jvmArg>
                     </jvmArgs>
                 </configuration>
             </plugin>
@@ -109,7 +111,16 @@
               the maven-surefile-plugin doc indicates is should! -->
               <includes>
                 <include>**/*Spec.class</include>
-              </includes>
+               </includes>
+                <encoding>UTF-8</encoding>
+                <inputEncoding>UTF-8</inputEncoding>
+                <outputEncoding>UTF-8</outputEncoding>
+              
+              <jvmArgs>
+                  <jvmArg>-Xms64m</jvmArg>
+                  <jvmArg>-Xmx1024m</jvmArg>
+                  <jvmArg>-Dfile.encoding=UTF-8</jvmArg>
+              </jvmArgs>
             </configuration>
           </execution>
         </executions>

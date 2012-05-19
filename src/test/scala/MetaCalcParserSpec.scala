@@ -90,6 +90,34 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             MetaCalcParser.test("send[c,x].$0 || recv[c,z].$1 || [x |-> z]")
         }
 	}
+    "a BigraphTranslator" should {
+        "have one node for 'a.nil'" in {
+            MetaCalcParser.toBigraph("a.nil").V.size mustEqual 1
+        }
+        "have two nodes for 'a.nil | b.nil'" in {
+            MetaCalcParser.toBigraph("a.nil | b.nil").V.size mustEqual 2
+        }
+        "have outer width 2 for 'a.nil || b.nil'" in {
+            MetaCalcParser.toBigraph("a.nil || b.nil").outer.width mustEqual 2
+        }
+        "have inner width 2 for 'a.$0 | a.$1'" in {
+            MetaCalcParser.toBigraph("a.$0 | a.$1").inner.width mustEqual 2
+        }
+        "have parent '2' for $1 in 'a.$0 || $1'" in {
+            MetaCalcParser.toBigraph("a.$0 || $1").prnt(new Hole(1)) mustEqual (new Region(2))
+        }
+        "have parent 'a' for 'b' in 'a.b.nil'" in {
+            val b = MetaCalcParser.toBigraph("a.b.nil")
+           
+            val n0 = b.V.head
+            val n1 = b.V.tail.head
+
+            val na = if (b.ctrl(n0).toString == "a") { n0 } else { n1 }
+            val nb = if (b.ctrl(n0).toString == "b") { n0 } else { n1 }
+
+            b.prnt(nb) mustEqual na 
+        }
+    }
 }
 
 

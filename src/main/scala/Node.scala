@@ -1,7 +1,7 @@
 package org.bigraph.bigmc
 
 class Node(val id : Int) extends Place {
-    override def toString = "Node@" + id
+    override def toString = "n"+id
     override def isRegion = false
 
     override def equals(other : Any) : Boolean = other match {
