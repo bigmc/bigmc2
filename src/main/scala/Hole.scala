@@ -2,7 +2,7 @@ package org.bigraph.bigmc
 
 class Hole(val id : Int) extends Place {
 
-	override def toString = "Hole@" + id
+	override def toString = "$" + id
 	override def isRegion = false
 
     override def equals(other : Any) : Boolean = other match {
