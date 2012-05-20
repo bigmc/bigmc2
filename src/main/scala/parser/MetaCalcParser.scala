@@ -38,8 +38,15 @@ u ::= x parent-of y
 */
 
 
-class Ident(id:String) {
+class Ident(val id:String) {
     override def toString:String = id
+
+    override def equals(other : Any) : Boolean = other match {
+        case that : Ident => that.id == id
+        case that : String => that == id
+        case _ => false
+    }
+
 }
 
 sealed abstract class Term {
@@ -54,43 +61,88 @@ sealed abstract class Term {
         case TPrefix(c,l,s) => TPrefix(c,l,normalise(s))
         case x => x
     }
+
+    def freeNames(bound : Set[Ident]) : Set[Ident]
+
+    def substitute(x : Ident, y : Ident) : Term
 }
 
 // lhs || rhs
 case class TWPar(lhs:Term, rhs:Term) extends Term {
     override def toString = "(" + lhs + " || " + rhs + ")"
+
+    def freeNames(bound : Set[Ident]) = lhs.freeNames(bound) ++ rhs.freeNames(bound)
+
+    def substitute(x: Ident, y: Ident) = TWPar(lhs.substitute(x,y), rhs.substitute(x,y))
 }
 // 0, the nil term for wide terms.
 case class TZero extends Term {
-    override def toString = "0" 
+    override def toString = "0"
+
+    def freeNames(bound : Set[Ident]) = Set()
+
+    def substitute(x: Ident, y: Ident) = this
 }
 // (v ident) term, name restriction for wide contexts
 case class TWideNew(ident:Ident, body:Term) extends Term {
     override def toString = "(ν" + ident + ")" + body
+
+    def freeNames(bound : Set[Ident]) = body.freeNames(bound + ident)
+    def substitute(x: Ident, y: Ident) = if(x == ident) {
+    	// Need to stop substituting x, we've hit a binder for it.
+	TWideNew(ident,body)
+    } else {
+	TWideNew(ident,body.substitute(x,y))
+    }
 }
 // [identL |-> identR], links.
 case class TLink(identL:Ident, identR:Ident) extends Term { 
     override def toString = "[" + identL + " |-> " + identR + "]"
+
+    def freeNames(bound : Set[Ident]) = Set()
+    def substitute(x: Ident, y: Ident) = {
+	val lp = if(x == identL) y else identL
+	val rp = if(x == identR) y else identR
+	TLink(lp,rp)
+    }
 }
 // c[idents].term, prefixing
 case class TPrefix(control: Ident, idents: List[Ident], suffix : Term) extends Term {
     override def toString = control + "[" + idents.mkString(",") + "]." + suffix
+
+    def freeNames(bound : Set[Ident]) = (idents.toSet -- bound) ++ suffix.freeNames(bound)
+    def substitute(x: Ident, y: Ident) = TPrefix(control,idents.map(n => if (n == x) y else n),suffix.substitute(x,y))
 }
 // p | p, parallel for prime contexts.
 case class TPar(lhs:Term, rhs:Term) extends Term {
     override def toString = "(" + lhs + " | " + rhs + ")"
+    def freeNames(bound : Set[Ident]) = lhs.freeNames(bound) ++ rhs.freeNames(bound)
+    def substitute(x: Ident, y: Ident) = TPar(lhs.substitute(x,y), rhs.substitute(x,y))
 }
 // nil for prime processes.
 case class TNil extends Term {
     override def toString = "nil"
+    def freeNames(bound : Set[Ident]) = Set()
+    def substitute(x: Ident, y: Ident) = this
 }
 // (v ident) term, name restriction for prime contexts
 case class TNew(ident:Ident, body:Term) extends Term {
     override def toString = "(ν" + ident + ")" + body
+
+    def freeNames(bound : Set[Ident]) = body.freeNames(bound + ident)
+    def substitute(x: Ident, y: Ident) = if(x == ident) {
+    	// Need to stop substituting x, we've hit a binder for it.
+	TNew(ident,body)
+    } else {
+	TNew(ident,body.substitute(x,y))
+    }
+
 }
 // $n, hole with index n
 case class THole(index:Int) extends Term {
     override def toString = "$" + index
+    def freeNames(bound : Set[Ident]) = Set()
+    def substitute(x: Ident, y: Ident) = this
 }
 
 class BigraphTranslator {

@@ -118,6 +118,38 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             b.prnt(nb) mustEqual na 
         }
     }
+    "freeName" should {
+        "report 'x,y,z' for 'a[x,y,z].nil'" in {
+            MetaCalcParser.apply("a[x,y,z].nil").freeNames(Set()) mustEqual Set(new Ident("x"),new Ident("y"),new Ident("z"))
+        }
+        "report 'x,z' for '(νy) a[x,y,z].nil'" in {
+            MetaCalcParser.apply("(νy) a[x,y,z].nil").freeNames(Set()) mustEqual Set(new Ident("x"),new Ident("z"))	
+        }
+        "report 'x,y,z' for '(νy) a[x,y,z].nil || b[y].nil'" in {
+            MetaCalcParser.apply("(νy) a[x,y,z].nil || b[y].nil").freeNames(Set()) mustEqual Set(new Ident("x"),new Ident("y"),new Ident("z"))	
+        }
+        "report 'x' for 'a[x].nil | (νx) b[x].nil'" in {
+            MetaCalcParser.apply("a[x].nil | (νx) b[x].nil").freeNames(Set()) mustEqual Set(new Ident("x"))	
+        }
+        "report '' for '(νx) a[x].nil | (νx) b[x].nil | (νy) c[y].nil'" in {
+            MetaCalcParser.apply("(νx) a[x].nil | (νx) b[x].nil | (νy) c[y].nil").freeNames(Set()).size mustEqual 0	
+        }
+    }
+    "substitution" should {
+        "turn 'a[x].nil' into 'a[y].nil'" in {
+            MetaCalcParser.apply("a[x].nil").substitute(new Ident("x"),new Ident("y")).toString mustEqual "a[y].nil"
+        }
+        "turn 'a[x].nil | b[x].nil | c[z].nil' into 'a[y].nil | b[y].nil | c[z].nil'" in {
+            MetaCalcParser.apply("a[x].nil | b[x].nil | c[z].nil").substitute(new Ident("x"),new Ident("y")).toString mustEqual "(a[y].nil | (b[y].nil | c[z].nil))"
+        }
+        "turn 'a[x].nil || b[x].nil' into 'a[y].nil || b[y].nil'" in {
+            MetaCalcParser.apply("a[x].nil || b[x].nil").substitute(new Ident("x"),new Ident("y")).toString mustEqual "(a[y].nil || b[y].nil)"
+        }
+        "turn 'a[x].nil | (νx) a[x].nil' into a different binding'" in {
+            MetaCalcParser.apply("a[x].nil | (νx) a[x].nil").substitute(new Ident("x"),new Ident("y")).toString mustNotEqual "a[y].nil | (νx) a[y].nil"
+        }
+
+    }
     "normalisation" should {
 	"Lift binding to the top-level for 'a[x].nil || (νx) b[x].nil'" in {
 		println("File Encoding: " + System.getProperty("file.encoding"))
