@@ -49,17 +49,60 @@ class Ident(val id:String) {
 
 }
 
+object FreshName {
+    var n = 0
+    def generate : Ident = {
+        n = n + 1
+        new Ident("_v" + n)
+    }
+}
+
 sealed abstract class Term {
-    def normalise(t : Term) : Term = t match {
-        case TWPar(TZero(),l) => TWPar(normalise(l),TZero())
-        case TWPar(l,TWPar(m,n)) => TWPar(TWPar(normalise(l),normalise(m)),normalise(n))
-        case TWPar(l,r) => TWPar(normalise(l),normalise(r))
-        case TPar(TNil(),l) => normalise(l)
-        case TPar(l,TNil()) => normalise(l)
-        case TPar(l,TPar(m,n)) => TPar(TPar(normalise(l),normalise(m)),normalise(n))
-        case TPar(l,r) => TPar(normalise(l),normalise(r))
-        case TPrefix(c,l,s) => TPrefix(c,l,normalise(s))
+    def normaliseOnce(t : Term) : Term = t match {
+        case TWPar(TNew(i,r),rp) => {
+            if(!rp.freeNames(Set()).contains(i)) {
+                // 'i' does not occur free, we can safely lift the New to the top level.
+                TNew(i,TWPar(normaliseOnce(r),normaliseOnce(rp)))
+            } else {
+                // 'i' occurs free, we need to substitute it out from 'r' before lifting it.
+                val fr = FreshName.generate
+                val nr = r.substitute(i,fr)
+                TNew(fr,TWPar(normaliseOnce(nr),normaliseOnce(rp)))
+            }
+        }
+        case TWPar(x,TNew(i,r)) => normaliseOnce(TWPar(TNew(i,r),x))
+        case TWPar(TZero(),l) => TWPar(normaliseOnce(l),TZero())
+        case TWPar(l,TWPar(m,n)) => TWPar(TWPar(normaliseOnce(l),normaliseOnce(m)),normaliseOnce(n))
+        case TWPar(l,r) => TWPar(normaliseOnce(l),normaliseOnce(r))
+        case TPar(TNil(),l) => normaliseOnce(l)
+        case TPar(l,TNil()) => normaliseOnce(l)
+        case TPar(l,TPar(m,n)) => TPar(TPar(normaliseOnce(l),normaliseOnce(m)),normaliseOnce(n))
+        case TPar(l,r) => TPar(normaliseOnce(l),normaliseOnce(r))
+        case TPrefix(c,l,TNew(i,r)) => {
+            if(!l.contains(i)) {
+                // c[l] doesn't contain i, we can lift immediately.
+                TNew(i,TPrefix(c,l,normaliseOnce(r)))
+            } else {
+                // i occurs in c[l], need to rename first, then lift.
+                val fr = FreshName.generate
+                val nr = r.substitute(i,fr)
+                TNew(fr,TPrefix(c,l,normaliseOnce(nr)))
+            }
+        }
+        case TPrefix(c,l,s) => TPrefix(c,l,normaliseOnce(s))
         case x => x
+    }
+
+    def normalise(t:Term) : Term = {
+        def iter (t1:Term,t2:Term) : Term = {
+            if(t1.toString == t2.toString) {
+                t1
+            } else {
+                iter(t2,normaliseOnce(t2))
+            }
+        }
+
+        iter(t,normaliseOnce(t))
     }
 
     def freeNames(bound : Set[Ident]) : Set[Ident]
@@ -82,18 +125,6 @@ case class TZero extends Term {
     def freeNames(bound : Set[Ident]) = Set()
 
     def substitute(x: Ident, y: Ident) = this
-}
-// (v ident) term, name restriction for wide contexts
-case class TWideNew(ident:Ident, body:Term) extends Term {
-    override def toString = "(ν" + ident + ")" + body
-
-    def freeNames(bound : Set[Ident]) = body.freeNames(bound + ident)
-    def substitute(x: Ident, y: Ident) = if(x == ident) {
-    	// Need to stop substituting x, we've hit a binder for it.
-	TWideNew(ident,body)
-    } else {
-	TWideNew(ident,body.substitute(x,y))
-    }
 }
 // [identL |-> identR], links.
 case class TLink(identL:Ident, identR:Ident) extends Term { 
@@ -131,10 +162,10 @@ case class TNew(ident:Ident, body:Term) extends Term {
 
     def freeNames(bound : Set[Ident]) = body.freeNames(bound + ident)
     def substitute(x: Ident, y: Ident) = if(x == ident) {
-    	// Need to stop substituting x, we've hit a binder for it.
-	TNew(ident,body)
+        // Need to stop substituting x, we've hit a binder for it.
+        TNew(ident,body)
     } else {
-	TNew(ident,body.substitute(x,y))
+        TNew(ident,body.substitute(x,y))
     }
 
 }
@@ -210,7 +241,7 @@ object MetaCalcParser extends StandardTokenParsers {
     lazy val prefix : Parser[Term] = ctrl ~ ("." ~> ("(" ~> expr <~ ")")) ^^ { case (c,n) ~ s => TPrefix(c,n,s) }  | 
         ctrl ~ ("." ~> prefix) ^^ {
             case (c,n) ~ s => TPrefix(c,n,s)
-        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil | hole
+        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil | hole | "(" ~> nu <~ ")" | nu 
 
     lazy val nameList : Parser[List[Ident]] = ident ~ ("," ~> nameList) ^^ { case i ~ n => (new Ident(i)) :: n } | ident ^^ ( i => List(new Ident(i)) )
 
@@ -228,7 +259,9 @@ object MetaCalcParser extends StandardTokenParsers {
 
     lazy val wpar = wterm ~ ("||" ~> wexpr) ^^ { case e1 ~ e2 => TWPar(e1,e2) }
 
-    lazy val wexpr : Parser[Term] = wpar | wterm | "(" ~> wexpr <~ ")"
+    lazy val wnu = ("(ν" ~> ident <~ ")") ~ wexpr ^^ { case i ~ e => TNew(new Ident(i), e) }
+
+    lazy val wexpr : Parser[Term] = wpar | wterm | wnu | "(" ~> wexpr <~ ")"
 
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)

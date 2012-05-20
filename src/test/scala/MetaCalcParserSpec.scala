@@ -89,6 +89,12 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "parse 'send[c,x].$0 || recv[c,z].$1 || [x |-> z]'" in {
             MetaCalcParser.test("send[c,x].$0 || recv[c,z].$1 || [x |-> z]")
         }
+        "parse '(νx)(a[x].nil || b[x].nil)'" in {
+            MetaCalcParser.test("(νx)(a[x].nil || b[x].nil)")
+        }
+        "parse 'a[x].(νx)b[x].c[x].nil'" in {
+            MetaCalcParser.test("a[x].(νx)b[x].c[x].nil")
+        }
 	}
     "a BigraphTranslator" should {
         "have one node for 'a.nil'" in {
@@ -148,21 +154,60 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "turn 'a[x].nil | (νx) a[x].nil' into a different binding'" in {
             MetaCalcParser.apply("a[x].nil | (νx) a[x].nil").substitute(new Ident("x"),new Ident("y")).toString mustNotEqual "a[y].nil | (νx) a[y].nil"
         }
+        "turn 'a[x,y,z].nil' into 'a[y,y,z].nil'" in {
+             MetaCalcParser.apply("a[x,y,z].nil").substitute(new Ident("x"),new Ident("y")).toString mustEqual "a[y,y,z].nil"
+        }
+        "turn 'a[x].b[z].c[x].nil' into 'a[y].b[z].c[y]'" in {
+            MetaCalcParser.apply("a[x].b[z].c[x].nil").substitute(new Ident("x"),new Ident("y")).toString mustEqual "a[y].b[z].c[y].nil"
+        }
+        "turn '[x |-> y]' into '[y |-> y]'" in {
+            MetaCalcParser.apply("[x |-> y]").substitute(new Ident("x"),new Ident("y")).toString mustEqual "[y |-> y]"
+        }
+        "not alter '(νx)(a[x].nil || b[x].nil)'" in {
+            MetaCalcParser.apply("(νx)(a[x].nil || b[x].nil)").substitute(new Ident("x"),new Ident("y")).toString mustEqual "(νx)(a[x].nil || b[x].nil)"
+        }
 
     }
     "normalisation" should {
-	"Lift binding to the top-level for 'a[x].nil || (νx) b[x].nil'" in {
-		println("File Encoding: " + System.getProperty("file.encoding"))
+        "Lift binding to the top-level for 'a[x].nil || (νx) b[x].nil'" in {
+            println("File Encoding: " + System.getProperty("file.encoding"))
 
-		val t =  MetaCalcParser.apply("a[x].nil || (νx) b[x].nil")
-		val nt = t.normalise(t)
+            val t =  MetaCalcParser.apply("a[x].nil || (νx) b[x].nil")
+            val nt = t.normalise(t)
 
-		t match {
-			case TWideNew(n,b) => n.toString != "x"
-			case _ => false
-		}
-	}
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n,b) => { n.toString != "x" }
+                case x => { false }
+                }
+        }
+        "Lift binding to the top level for 'a[x].(νx)b[x].c[x].nil'" in {
+            val t =  MetaCalcParser.apply("a[x].(νx)b[x].c[x].nil")
+            val nt = t.normalise(t)
+
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n,b) => { n.toString != "x" }
+                case x => { false }
+                }
+
+        }
+        "Lift binding to the top level for 'a[x].b[x].(νx)c[x].nil'" in {
+            val t =  MetaCalcParser.apply("a[x].b[x].(νx)c[x].nil")
+            val nt = t.normalise(t)
+
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n,b) => { n.toString != "x" }
+                case x => { false }
+                }
+
+        }
     }
+
 }
 
 
