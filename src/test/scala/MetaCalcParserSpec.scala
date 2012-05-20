@@ -118,6 +118,19 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             b.prnt(nb) mustEqual na 
         }
     }
+    "normalisation" should {
+	"Lift binding to the top-level for 'a[x].nil || (νx) b[x].nil'" in {
+		println("File Encoding: " + System.getProperty("file.encoding"))
+
+		val t =  MetaCalcParser.apply("a[x].nil || (νx) b[x].nil")
+		val nt = t.normalise(t)
+
+		t match {
+			case TWideNew(n,b) => n.toString != "x"
+			case _ => false
+		}
+	}
+    }
 }
 
 

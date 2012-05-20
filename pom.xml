@@ -12,6 +12,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <encoding>UTF-8</encoding>
   </properties>
 
@@ -81,12 +82,16 @@
                     </execution>
                 </executions>
                 <configuration>
+	            <argLine>-Dfile.encoding=UTF-8</argLine>
                     <sourceDir>src/main/scala</sourceDir>
+		    <encoding>UTF-8</encoding>
                     <jvmArgs>
                         <jvmArg>-Xms64m</jvmArg>
                         <jvmArg>-Xmx1024m</jvmArg>
                         <jvmArg>-Dfile.encoding=UTF-8</jvmArg>
+			<jvmArg>-encoding UTF-8</jvmArg>
                     </jvmArgs>
+	            <argLine>-Dfile.encoding=UTF-8 -encoding UTF-8</argLine>
                 </configuration>
             </plugin>
         <plugin>
@@ -104,6 +109,7 @@
               <goal>test</goal>
             </goals>
             <configuration>
+	      <encoding>UTF-8</encoding>
               <!-- Directory for scala tests -->
               <testSourceDirectory>src/test/scala</testSourceDirectory>
               <!-- The sorts of classes to consider as tests.
@@ -120,7 +126,9 @@
                   <jvmArg>-Xms64m</jvmArg>
                   <jvmArg>-Xmx1024m</jvmArg>
                   <jvmArg>-Dfile.encoding=UTF-8</jvmArg>
+		  <jvmArg>-encoding UTF-8</jvmArg>
               </jvmArgs>
+	      <argLine>-Dfile.encoding=UTF-8 -encoding UTF-8</argLine>
             </configuration>
           </execution>
         </executions>
