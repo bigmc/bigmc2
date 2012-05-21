@@ -68,7 +68,7 @@ trait bgtest extends Scope {
 	val v1 = Set(a,b)
 	val v2 = Set(x,y)
 
-	val edge1 = new Edge(1)
+	val edge1 = new Edge("1")
 
 	val e1 : Set[Edge] = Set(edge1)
 	val e2 : Set[Edge] = Set()

@@ -76,6 +76,18 @@ sealed abstract class Term {
         case TWPar(l,r) => TWPar(normaliseOnce(l),normaliseOnce(r))
         case TPar(TNil(),l) => normaliseOnce(l)
         case TPar(l,TNil()) => normaliseOnce(l)
+        case TPar(TNew(i,r),rp) => {
+            if(!rp.freeNames(Set()).contains(i)) {
+                // 'i' does not occur free, we can safely lift the New to the top level.
+                TNew(i,TPar(normaliseOnce(r),normaliseOnce(rp)))
+            } else {
+                // 'i' occurs free, we need to substitute it out from 'r' before lifting it.
+                val fr = FreshName.generate
+                val nr = r.substitute(i,fr)
+                TNew(fr,TPar(normaliseOnce(nr),normaliseOnce(rp)))
+            }
+        }
+        case TPar(x,TNew(i,r)) => normaliseOnce(TPar(TNew(i,r),x))
         case TPar(l,TPar(m,n)) => TPar(TPar(normaliseOnce(l),normaliseOnce(m)),normaliseOnce(n))
         case TPar(l,r) => TPar(normaliseOnce(l),normaliseOnce(r))
         case TPrefix(c,l,TNew(i,r)) => {
@@ -89,6 +101,7 @@ sealed abstract class Term {
                 TNew(fr,TPrefix(c,l,normaliseOnce(nr)))
             }
         }
+        case TNew(i,r) => TNew(i,normaliseOnce(r))
         case TPrefix(c,l,s) => TPrefix(c,l,normaliseOnce(s))
         case x => x
     }
@@ -179,25 +192,43 @@ case class THole(index:Int) extends Term {
 class BigraphTranslator {
     var nodes : Set[Node] = Set()
     var nodeId = 0
+    var edges : Set[Edge] = Set()
     var ctrl : Map[Node,Control] = Map()
     var prnt : Map[Place,Place] = Map()
+    var link : Map[Link,Link] = Map()
     var outerWidth = 1
     var innerWidth = 0
+    var outerNames : Set[Name] = Set()
+    var innerNames : Set[Name] = Set()
 
-    def translate(t : Term, parent : Place) : Unit = t match {
+    def translate(t : Term, parent : Place) : Unit = {
+    println("Translating: " + t);
+    t match {
         case TWPar(l,r) => {
             translate(l,parent)
             outerWidth = outerWidth + 1
             translate(r,new Region(outerWidth))
         }
         case TZero() => ()
-        case TPrefix(c,i,suff) => {
+        case TPrefix(c,names,suff) => {
             val n = new Node(nodeId)
             nodeId = nodeId + 1
             nodes += n
             val cn = new Control(c.toString)
             ctrl += n -> cn
             prnt += n -> parent
+
+            for(idx <- List.range(0,names.size)) {
+                // Need to decide if this port is a link to an edge, or an outer name
+                if(edges.contains(new Edge(names(idx).toString))) {
+                    // It's an edge.
+                    link += (new Port(n,idx)) -> (new Edge(names(idx).toString))
+                } else {
+                    // It's an outer name
+                    outerNames += new Name(names(idx).toString)
+                    link += (new Port(n,idx)) -> (new Name(names(idx).toString))
+                }
+            }
 
             translate(suff,n)
         }
@@ -212,15 +243,28 @@ class BigraphTranslator {
             translate(l,parent)
             translate(r,parent)
         }
-        case x => ()
-    }
+        case TNew(i,r) => {
+            edges += new Edge(i.toString)
+            translate(r,parent)
+        }
+        case TLink(l,r) => {
+            innerNames += new Name(l.toString)
+
+            if(edges.contains(new Edge(r.toString))) {
+                link += (new Name(l.toString)) -> (new Edge(r.toString))
+            } else {
+                outerNames += new Name(r.toString)
+            }
+        }
+        case TNil() => ()
+    }}
 
     def toBigraph(t : Term) : Bigraph = {
         translate(t.normalise(t),new Region(1))
 
-        val b = new Bigraph(nodes,Set(),ctrl,prnt,Map(),new Face(innerWidth,Set()), new Face(outerWidth,Set()))
+        val b = new Bigraph(nodes,edges,ctrl,prnt,Map(),new Face(innerWidth,innerNames), new Face(outerWidth,outerNames))
 
-        println(b)
+        println("Translated: " + t.normalise(t) + " into " + b)
 
         b
     }
@@ -241,7 +285,7 @@ object MetaCalcParser extends StandardTokenParsers {
     lazy val prefix : Parser[Term] = ctrl ~ ("." ~> ("(" ~> expr <~ ")")) ^^ { case (c,n) ~ s => TPrefix(c,n,s) }  | 
         ctrl ~ ("." ~> prefix) ^^ {
             case (c,n) ~ s => TPrefix(c,n,s)
-        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil | hole | "(" ~> nu <~ ")" | nu 
+        } | ctrl ^^ { case (c,n) => TPrefix(c,n,TNil()) } | nil | hole | "(" ~> nu <~ ")" | nu | "(" ~> par <~ ")"
 
     lazy val nameList : Parser[List[Ident]] = ident ~ ("," ~> nameList) ^^ { case i ~ n => (new Ident(i)) :: n } | ident ^^ ( i => List(new Ident(i)) )
 
@@ -271,8 +315,10 @@ object MetaCalcParser extends StandardTokenParsers {
     def apply(s:String):Term = {
         parse(s) match {
             case Success(tree, _) => tree
-            case e: NoSuccess =>
+            case e: NoSuccess => {
+                Console.err.println(e);
                    throw new IllegalArgumentException("Bad syntax: "+s)
+            }
         }
     }
 

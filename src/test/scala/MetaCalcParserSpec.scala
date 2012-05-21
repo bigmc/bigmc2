@@ -95,6 +95,9 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "parse 'a[x].(νx)b[x].c[x].nil'" in {
             MetaCalcParser.test("a[x].(νx)b[x].c[x].nil")
         }
+        "parse 'a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil'" in {
+            MetaCalcParser.test("a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil")
+        }
 	}
     "a BigraphTranslator" should {
         "have one node for 'a.nil'" in {
@@ -109,6 +112,12 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "have inner width 2 for 'a.$0 | a.$1'" in {
             MetaCalcParser.toBigraph("a.$0 | a.$1").inner.width mustEqual 2
         }
+        "have outer width 1 for '(νz)([x |-> z] || [y |-> z])'" in {
+            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").outer.width mustEqual 1
+        }
+        "have inner width 1 for '(νz)([x |-> z] || [y |-> z])'" in {
+            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").inner.width mustEqual 1
+        }
         "have parent '2' for $1 in 'a.$0 || $1'" in {
             MetaCalcParser.toBigraph("a.$0 || $1").prnt(new Hole(1)) mustEqual (new Region(2))
         }
@@ -122,6 +131,15 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             val nb = if (b.ctrl(n0).toString == "b") { n0 } else { n1 }
 
             b.prnt(nb) mustEqual na 
+        }
+        "have 2 edges for '(νx)a[x].nil | (νy)a[y].nil'" in {
+            MetaCalcParser.toBigraph("(νx)a[x].nil | (νy)a[y].nil").E.size mustEqual 2
+        }
+        "have inner names 'x,y' for '(νz)([x |-> z] || [y |-> z])'" in {
+             MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").inner.names mustEqual Set(new Name("x"),new Name("y"))
+        }
+        "have outer names 'q' for '(νr)([x |-> r] || [y |-> q])'" in {
+             MetaCalcParser.toBigraph("(νr)([x |-> r] || [y |-> q])").outer.names mustEqual Set(new Name("q"))
         }
     }
     "freeName" should {
@@ -206,6 +224,52 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
                 }
 
         }
+        "Lift binding to the top level for 'a[x].(b[x].nil | c[y].(νx)d[x].nil)'" in {
+            val t =  MetaCalcParser.apply("a[x].(b[x].nil | c[y].(νx)d[x].nil)")
+            val nt = t.normalise(t)
+
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n,b) => { n.toString != "x" }
+                case x => { false }
+                }
+
+        }
+        "Lift two binding to the top level for 'a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil'" in {
+            val t =  MetaCalcParser.apply("a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil")
+            val nt = t.normalise(t)
+
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n1,TNew(n2,b)) => { n1.toString != "x" && n2.toString != "x" }
+                case x => { false }
+                }
+        }
+        "Lift binding to the top level for 'a[x].(νx)b[x].nil || [x |-> y]'" in {
+            val t =  MetaCalcParser.apply("a[x].(νx)b[x].nil || [x |-> y]")
+            val nt = t.normalise(t)
+
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n,b) => { n.toString != "x" }
+                case x => { false }
+                }
+        }
+        "Lift two binding to the top level for 'a[x].(νx)b[x].nil || (νx)[w |-> x]'" in {
+            val t =  MetaCalcParser.apply("a[x].(νx)b[x].nil || (νx)[w |-> x]")
+            val nt = t.normalise(t)
+
+            println("Normalise: " + nt)
+
+            nt match {
+                case TNew(n1,TNew(n2,b)) => { n1.toString != "x" && n2.toString != "x" }
+                case x => { false }
+                }
+        }
+
     }
 
 }
