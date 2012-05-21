@@ -202,7 +202,6 @@ class BigraphTranslator {
     var innerNames : Set[Name] = Set()
 
     def translate(t : Term, parent : Place) : Unit = {
-    println("Translating: " + t);
     t match {
         case TWPar(l,r) => {
             translate(l,parent)
@@ -266,8 +265,6 @@ class BigraphTranslator {
 
         val b = new Bigraph(nodes,edges,ctrl,prnt,link,new Face(innerWidth,innerNames), new Face(outerWidth,outerNames))
 
-        println("Translated: " + t.normalise(t) + " into " + b)
-
         b
     }
     
@@ -326,7 +323,7 @@ object MetaCalcParser extends StandardTokenParsers {
 
     def test(exprstr: String) = {
         parse(exprstr) match {
-            case Success(tree, _) => {println(tree); println("NF: " + tree.normalise(tree)); true}
+            case Success(tree, _) => {true}
             case e: NoSuccess => {
                 Console.err.println(e);
                 false

@@ -203,12 +203,8 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
     }
     "normalisation" should {
         "Lift binding to the top-level for 'a[x].nil || (νx) b[x].nil'" in {
-            println("File Encoding: " + System.getProperty("file.encoding"))
-
             val t =  MetaCalcParser.apply("a[x].nil || (νx) b[x].nil")
             val nt = t.normalise(t)
-
-            println("Normalise: " + nt)
 
             nt match {
                 case TNew(n,b) => { n.toString != "x" }
@@ -218,8 +214,6 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "Lift binding to the top level for 'a[x].(νx)b[x].c[x].nil'" in {
             val t =  MetaCalcParser.apply("a[x].(νx)b[x].c[x].nil")
             val nt = t.normalise(t)
-
-            println("Normalise: " + nt)
 
             nt match {
                 case TNew(n,b) => { n.toString != "x" }
@@ -231,8 +225,6 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             val t =  MetaCalcParser.apply("a[x].b[x].(νx)c[x].nil")
             val nt = t.normalise(t)
 
-            println("Normalise: " + nt)
-
             nt match {
                 case TNew(n,b) => { n.toString != "x" }
                 case x => { false }
@@ -242,8 +234,6 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "Lift binding to the top level for 'a[x].(b[x].nil | c[y].(νx)d[x].nil)'" in {
             val t =  MetaCalcParser.apply("a[x].(b[x].nil | c[y].(νx)d[x].nil)")
             val nt = t.normalise(t)
-
-            println("Normalise: " + nt)
 
             nt match {
                 case TNew(n,b) => { n.toString != "x" }
@@ -255,8 +245,6 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             val t =  MetaCalcParser.apply("a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil")
             val nt = t.normalise(t)
 
-            println("Normalise: " + nt)
-
             nt match {
                 case TNew(n1,TNew(n2,b)) => { n1.toString != "x" && n2.toString != "x" }
                 case x => { false }
@@ -266,8 +254,6 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             val t =  MetaCalcParser.apply("a[x].(νx)b[x].nil || [x |-> y]")
             val nt = t.normalise(t)
 
-            println("Normalise: " + nt)
-
             nt match {
                 case TNew(n,b) => { n.toString != "x" }
                 case x => { false }
@@ -276,8 +262,6 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "Lift two binding to the top level for 'a[x].(νx)b[x].nil || (νx)[w |-> x]'" in {
             val t =  MetaCalcParser.apply("a[x].(νx)b[x].nil || (νx)[w |-> x]")
             val nt = t.normalise(t)
-
-            println("Normalise: " + nt)
 
             nt match {
                 case TNew(n1,TNew(n2,b)) => { n1.toString != "x" && n2.toString != "x" }
