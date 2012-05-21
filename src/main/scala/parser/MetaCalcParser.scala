@@ -248,6 +248,8 @@ class BigraphTranslator {
             translate(r,parent)
         }
         case TLink(l,r) => {
+            outerWidth -= 1
+
             innerNames += new Name(l.toString)
 
             if(edges.contains(new Edge(r.toString))) {
@@ -262,7 +264,7 @@ class BigraphTranslator {
     def toBigraph(t : Term) : Bigraph = {
         translate(t.normalise(t),new Region(1))
 
-        val b = new Bigraph(nodes,edges,ctrl,prnt,Map(),new Face(innerWidth,innerNames), new Face(outerWidth,outerNames))
+        val b = new Bigraph(nodes,edges,ctrl,prnt,link,new Face(innerWidth,innerNames), new Face(outerWidth,outerNames))
 
         println("Translated: " + t.normalise(t) + " into " + b)
 

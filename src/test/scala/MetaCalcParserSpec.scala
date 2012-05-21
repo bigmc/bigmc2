@@ -98,6 +98,12 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "parse 'a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil'" in {
             MetaCalcParser.test("a[x].(b[x].nil | c[y].(νx)d[x].nil) || a[x].(νx)d[x].nil")
         }
+        "parse '(νz)([x |-> z] || [y |-> z]) || a.$0'" in {
+            MetaCalcParser.test("(νz)([x |-> z] || [y |-> z]) || a.$0")
+        }
+        "parse 'a.b | c[x].d'" in {
+            MetaCalcParser.test("a.b | c[x].d")
+        }
 	}
     "a BigraphTranslator" should {
         "have one node for 'a.nil'" in {
@@ -112,11 +118,17 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "have inner width 2 for 'a.$0 | a.$1'" in {
             MetaCalcParser.toBigraph("a.$0 | a.$1").inner.width mustEqual 2
         }
-        "have outer width 1 for '(νz)([x |-> z] || [y |-> z])'" in {
-            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").outer.width mustEqual 1
+        "have outer width 0 for '(νz)([x |-> z] || [y |-> z])'" in {
+            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").outer.width mustEqual 0
         }
-        "have inner width 1 for '(νz)([x |-> z] || [y |-> z])'" in {
-            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").inner.width mustEqual 1
+        "have inner width 0 for '(νz)([x |-> z] || [y |-> z])'" in {
+            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z])").inner.width mustEqual 0
+        }
+        "have outer width 1 for '(νz)([x |-> z] || [y |-> z] || a.$0)'" in {
+            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z] || a.$0)").outer.width mustEqual 1
+        }
+        "have inner width 1 for '(νz)([x |-> z] || [y |-> z] || a.$0)'" in {
+            MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z] || a.$0)").inner.width mustEqual 1
         }
         "have parent '2' for $1 in 'a.$0 || $1'" in {
             MetaCalcParser.toBigraph("a.$0 || $1").prnt(new Hole(1)) mustEqual (new Region(2))
@@ -140,6 +152,9 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         }
         "have outer names 'q' for '(νr)([x |-> r] || [y |-> q])'" in {
              MetaCalcParser.toBigraph("(νr)([x |-> r] || [y |-> q])").outer.names mustEqual Set(new Name("q"))
+        }
+        "have 2 links in '(νe)(a[e].nil | a[e].nil)'" in {
+            MetaCalcParser.toBigraph("(νe)(a[e].nil | a[e].nil)").link.size mustEqual 2
         }
     }
     "freeName" should {
