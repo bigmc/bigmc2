@@ -57,15 +57,6 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 1 
         }
-        "recompose correctly" in {
-            val b1 = MetaCalcParser.toBigraph("a.b.nil | b.a.nil")
-            val b2 = MetaCalcParser.toBigraph("a.$0 || b.$0")
-            val m = new Matcher(b1,b2)
-            val m1 = m.all.head
-            val c1 = m1.C.compose(m1.B.compose(m1.D))
-
-            c1.toString mustEqual b1.toString
-        }
     }
 
 
