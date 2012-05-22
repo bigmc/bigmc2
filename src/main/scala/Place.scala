@@ -3,5 +3,12 @@ package org.bigraph.bigmc
 trait Place {
 	def toString: String
 	def isRegion: Boolean
+    
+    override def equals(other : Any) : Boolean = other match {
+        case that : Region => that == this
+        case that : Hole => that == this
+        case that : Node => that == this
+        case _ => false
+    }
 }
 

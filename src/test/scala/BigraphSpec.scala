@@ -57,6 +57,14 @@ class BigraphSpecTest extends SpecificationWithJUnit {
 			b1xb2.prnt(y) mustEqual new Region(3)
 		}
 	}
+	"Bigraph.children" should {
+		"return 0 children for 'a'" in new bgtest {
+			b1.children(a).size mustEqual 0
+		}
+		"return 1 child for 'a' in b1b2" in new bgtest {
+			b1b2.children(a).size mustEqual 1
+		}
+	}
 }
 
 trait bgtest extends Scope {
