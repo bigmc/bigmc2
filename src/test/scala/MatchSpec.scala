@@ -74,8 +74,62 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 0
         }
+        "find 1 occurences of 'a.nil | b.nil' in 'a.nil | b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil | b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil | b.nil")
+            val m = new Matcher(b1,b2)
 
+            m.all.size mustEqual 1
+        }
+        "find 2 occurences of 'a.nil | a.nil' in 'a.nil | a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil | a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil | a.nil")
+            val m = new Matcher(b1,b2)
 
+            m.all.size mustEqual 2
+        }
+        "find 6 occurences of 'a.nil | a.nil' in 'a.nil | a.nil | a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil | a.nil | a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil | a.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 6
+        }
+        "find 0 occurences of 'a.nil | a.nil' in 'a.b.nil | a.b.nil | a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.nil | a.b.nil | a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil | a.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 2 occurences of 'a.nil | a.nil' in 'x.(a.nil | a.nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("x.(a.nil | a.nil)")
+            val b2 = MetaCalcParser.toBigraph("a.nil | a.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 2 occurences of 'x.(a.nil | a.nil)' in 'x.(a.nil | a.nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("x.(a.nil | a.nil)")
+            val b2 = MetaCalcParser.toBigraph("x.(a.nil | a.nil)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 0 occurences of 'x.(a.nil | a.nil)' in 'x.(a.nil | a.nil | a.nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("x.(a.nil | a.nil | a.nil)")
+            val b2 = MetaCalcParser.toBigraph("x.(a.nil | a.nil)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 1 occurences of 'a.nil | b.nil' in 'a.nil | b.nil | c.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil | b.nil | c.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil | b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
 
     }
     "Matching 'a.$0' in 'a.b.nil'" should {
@@ -119,7 +173,6 @@ class MatchSpecTest extends SpecificationWithJUnit {
             m.all.size mustEqual 1 
         }
     }
-
 
 }
 

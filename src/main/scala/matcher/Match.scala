@@ -34,5 +34,26 @@ class Match (val B : Bigraph,
         m.root = root
         m
     }
+
+    def isCompatible(m : Match) : Boolean = {
+        if(m.root != root) return false
+
+        // Two keys aren't mapped to different things.
+        if(!mapping.forall(k => if(m.mapping contains k._1) m.mapping(k._1) == k._2 else true)) return false
+
+
+        // The same rhs isn't used twice for different things.
+        mapping.forall(k => !m.mapping.exists(j => k._2 == j._2 && k._1 != j._1))
+    }
+
+    def merge(m : Match) : Match = {
+        val k = new Match(B,redex)
+        k.mapping = mapping ++ m.mapping
+        k.root = root
+        k.successful = successful
+        k.failed = failed
+
+        k
+    }
 }
 
