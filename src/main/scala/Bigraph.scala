@@ -21,7 +21,7 @@ class Bigraph(val V : Set[Node],
                 if(c.size == 0) {
                     ctrl(n) + "#" + n + ".nil"
                 } else if(c.size == 1) {
-                    ctrl(n) + "#" + n + toMetaCalcString(c.head)
+                    ctrl(n) + "#" + n + "." + toMetaCalcString(c.head)
                 } else {
                     ctrl(n) + "#" + n + ".(" + c.map(x => toMetaCalcString(x)).mkString(" | ") + ")"
                 }

@@ -42,7 +42,8 @@ class Matcher (B : Bigraph, redex : Bigraph) {
             if(ma.root == null) ma.root = n
             ma
         }
-        case _ => {
+        case (n,m) => {
+            println("MATCH FAILURE: " + n + " against " + m)
             ma.failure
             ma
         }
@@ -85,8 +86,9 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         }
 
         // Matching a parallel redex against a single prefix
-        if(needle.size > 1 && haystack.size <= 1) {
+        if(needle.filter(x => !x.isHole).size > 1 && haystack.size <= 1) {
             m.failure
+            println("kmap cand: B: " + B.toNiceString + "\n Redex: " + redex.toNiceString + "\nReason: needle.size > 1 && haystack <= 1\nNeedle: " + needle + "\nHaystack: " + haystack + "\n")
             return Set() ++ altMatches
         }
 
@@ -101,6 +103,9 @@ class Matcher (B : Bigraph, redex : Bigraph) {
                     kmap = kmap + (n -> find(Set(h),Set(n),m.dup))
                 }
             }
+
+            if(kmap.size == 0)
+                return Set() ++ altMatches
 
             var cand : Set[Match] = kmap.head._2
 
@@ -124,9 +129,13 @@ class Matcher (B : Bigraph, redex : Bigraph) {
                 })
             }
 
-            println("kmap cand: " + B.toNiceString + "\n" + redex.toNiceString + "\n" + cand)
+            println("kmap cand: B: " + B.toNiceString + "\n Redex: " + redex.toNiceString + "\nSize: " + cleanCand.size + "\n")
 
             return cleanCand ++ altMatches
+        }
+        
+        if(m.root == null) {
+            println("kmap cand: B: " + B.toNiceString + "\n Redex: " + redex.toNiceString + "\nReason: null root in: " + m + "\n")
         }
 
         Set() ++ altMatches
