@@ -123,54 +123,86 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 0
         }
-        "find 1 occurences of 'a.nil | b.nil' in 'a.nil | b.nil | c.nil'" in {
+        "find 1 occurence of 'a.nil | b.nil' in 'a.nil | b.nil | c.nil'" in {
             val b1 = MetaCalcParser.toBigraph("a.nil | b.nil | c.nil")
             val b2 = MetaCalcParser.toBigraph("a.nil | b.nil")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 1
         }
+    }
+    "Parametric redexes" should {
+        "find 1 occurence of 'a.$0' in 'a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.$0")
+            val m = new Matcher(b1,b2)
 
-    }
-    "Matching 'a.$0' in 'a.b.nil'" should {
-        "find 1 occurence" in new matchtest {
-            matches.size mustEqual 1
+            m.all.size mustEqual 1
         }
-    }
-    "Matching 'a.(b | $0)' in 'a.b.nil'" should {
-        "find 1 occurence" in {
+        "find 1 occurencs of 'a.$0' in 'a.b.nil'" in {
             val b1 = MetaCalcParser.toBigraph("a.b.nil")
-            val b2 = MetaCalcParser.toBigraph("a.(b | $0)")
+            val b2 = MetaCalcParser.toBigraph("a.$0")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 1
         }
-    }
-    "Matching 'a.b.(b | $0)' in 'a.b.b.nil'" should {
-        "find 1 occurence" in {
+        "find 1 occurence of 'a.$0' in 'a.b.c.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.c.nil")
+            val b2 = MetaCalcParser.toBigraph("a.$0")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 2 occurences of 'a.$0' in 'a.a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.$0")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 1 occurence of 'a.(b.nil | $0)' in 'a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.(b.nil | $0)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 2 occurences of 'a.(b.nil | $0)' in 'a.(b.nil | b.nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("a.(b.nil | b.nil)")
+            val b2 = MetaCalcParser.toBigraph("a.(b.nil | $0)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 1 occurence of 'a.b.(b.nil | $0)' in 'a.b.b.nil'" in {
             val b1 = MetaCalcParser.toBigraph("a.b.b.nil")
-            val b2 = MetaCalcParser.toBigraph("a.b.(b | $0)")
+            val b2 = MetaCalcParser.toBigraph("a.b.(b.nil | $0)")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 1
         }
-    }
-    "Matching 'a.b.(b | $0)' in 'b.b.b.nil'" should {
-        "find 0 occurences" in {
-            val b1 = MetaCalcParser.toBigraph("b.b.b.nil")
-            val b2 = MetaCalcParser.toBigraph("a.b.(b | $0)")
+        "find 0 occurences of 'a.b.(b.nil | $0)' in 'a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.(b.nil | $0)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 0 occurences of 'a.b.(b.nil | $0)' in 'a.b.b.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.b.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.(b.nil | $0)")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 0
         }
     }
-    "Matching 'a.$0 || b.$0' in 'a.b.nil | b.a.nil'" should {
-        "find 1 occurences" in {
-            val b1 = MetaCalcParser.toBigraph("a.b.nil | b.a.nil")
+    "Wide parametric matching" should {
+        "find 1 occurence of 'a.$0 || b.$0' in 'a.b.nil | b.c.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.nil | b.c.nil")
             val b2 = MetaCalcParser.toBigraph("a.$0 || b.$0")
             val m = new Matcher(b1,b2)
 
-            m.all.size mustEqual 1 
+            m.all.size mustEqual 1
         }
     }
 

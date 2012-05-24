@@ -90,11 +90,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
             return Set() ++ altMatches
         }
 
-        // Matching parallel elements at the top level
-        if(needle.size > 1 && m.root == null) {
-            return Set() ++ altMatches
-        }
-
         // Matching parallel elements nested under a prefix.
         if(needle.size > 1 && m.root != null) {
             var kmap : Map[Place,Set[Match]] = Map()
