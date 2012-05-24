@@ -129,7 +129,7 @@ class Matcher (B : Bigraph, redex : Bigraph) {
                 })
             }
 
-            println("kmap cand: " + B + "\n" + redex + "\n" + cand)
+            println("kmap cand: " + B.toNiceString + "\n" + redex.toNiceString + "\n" + cand)
 
             return cleanCand ++ altMatches
         }

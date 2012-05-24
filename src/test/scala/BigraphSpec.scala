@@ -58,8 +58,8 @@ class BigraphSpecTest extends SpecificationWithJUnit {
 		}
 	}
 	"Bigraph.children" should {
-		"return 0 children for 'a'" in new bgtest {
-			b1.children(a).size mustEqual 0
+		"return 1 child for 'a'" in new bgtest {
+			b1.children(a).size mustEqual 1
 		}
 		"return 1 child for 'a' in b1b2" in new bgtest {
 			b1b2.children(a).size mustEqual 1

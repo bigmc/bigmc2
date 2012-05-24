@@ -12,6 +12,32 @@ class Bigraph(val V : Set[Node],
 
     override def toString = "({"+V.mkString(",")+"},{"+E.mkString(",")+"},{"+ctrl.mkString(",")+"},{"+prnt.mkString(",")+"},{"+link.mkString(",")+"}) : "+inner+" → " + outer 
 
+    def toMetaCalcString(p : Place) : String = {
+        p match {
+            case h : Hole => "$" + h.id
+            case n : Node => {
+                val c = children(n)
+
+                if(c.size == 0) {
+                    ctrl(n) + "#" + n + ".nil"
+                } else if(c.size == 1) {
+                    ctrl(n) + "#" + n + toMetaCalcString(c.head)
+                } else {
+                    ctrl(n) + "#" + n + ".(" + c.map(x => toMetaCalcString(x)).mkString(" | ") + ")"
+                }
+            }
+            case r : Region => {
+                 val c = children(r)
+
+                 c.map(x => toMetaCalcString(x)).mkString(" | ") 
+            }
+        }
+    }
+
+    def toNiceString : String = {
+        regions.map(toMetaCalcString).mkString(" || ")
+    }
+
     def compose(other : Bigraph) : Bigraph = {
         if(other.outer.width != inner.width) {
             throw new IllegalArgumentException("Incompatible interface widths in composition")
