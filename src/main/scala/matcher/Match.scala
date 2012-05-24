@@ -16,7 +16,9 @@ class Match (val B : Bigraph,
         failed = true
     }
 
-    def addMapping (p : Place, q : Place) = mapping += p -> q
+    def addMapping (p : Place, q : Place) = {
+        mapping += p -> q
+    }
 
     override def toString = 
         "Match[\n" +
@@ -56,6 +58,9 @@ class Match (val B : Bigraph,
         k
     }
 
-    def matchedPlaces : Set[Place] = Set() ++ mapping.values
+    def matchedPlaces : Set[Place] = Set() ++ mapping.values.map(x => x match {
+        case p : Parameter => p.contents
+        case x => Set(x)
+    }).flatten
 }
 

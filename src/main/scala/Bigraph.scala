@@ -19,11 +19,11 @@ class Bigraph(val V : Set[Node],
                 val c = children(n)
 
                 if(c.size == 0) {
-                    ctrl(n) + "#" + n + ".nil"
+                    ctrl(n) + ".nil"
                 } else if(c.size == 1) {
-                    ctrl(n) + "#" + n + "." + toMetaCalcString(c.head)
+                    ctrl(n) + "." + toMetaCalcString(c.head)
                 } else {
-                    ctrl(n) + "#" + n + ".(" + c.map(x => toMetaCalcString(x)).mkString(" | ") + ")"
+                    ctrl(n) + ".(" + c.map(x => toMetaCalcString(x)).mkString(" | ") + ")"
                 }
             }
             case r : Region => {
@@ -52,11 +52,12 @@ class Bigraph(val V : Set[Node],
         val nctrl = ctrl ++ other.ctrl
         var nprnt1 = prnt
         val nprnt2 = for((a,b) <- other.prnt) yield {
-            if(b.isRegion) {
-                nprnt1 = nprnt1 - b
-                a -> prnt(b)
-            } else {
-                a -> b
+            b match {
+                case r : Region => {
+                    nprnt1 = nprnt1 - (new Hole(r.id))
+                    a -> prnt(new Hole(r.id))
+                }
+                case _ => a -> b
             }
         }
         val nprnt = nprnt1 ++ nprnt2
@@ -109,6 +110,19 @@ class Bigraph(val V : Set[Node],
     def holes : List[Place] = for(r <- List.range(0,inner.width)) yield (new Hole(r))
 
     def places : Set[Place] = V ++ holes ++ regions
+
+    def descendants (place : Place) : Set[Place] = place match {
+        case h : Hole => Set(h)
+        case r : Region => {
+            val ch = children(r)
+            ch ++ ch.map(c => descendants(c)).flatten
+        }
+        case r : Node => {
+            val ch = children(r)
+            ch ++ ch.map(c => descendants(c)).flatten
+        }
+        case _ => Set()
+    }
 }
 
 
