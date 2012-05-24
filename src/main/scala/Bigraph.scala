@@ -74,11 +74,15 @@ class Bigraph(val V : Set[Node],
         return new Bigraph(nV,nE,nctrl,nprnt,nlink,ninner,nouter)
     }
 
-    def children(place : Place) : Set[Node] = {
-	V.filter(x => { prnt(x) == place })
+    def children(place : Place) : Set[Place] = {
+        prnt.filter(m => m._2 == place).map(m => m._1).toSet
     }
 
     def regions : List[Place] = for(r <- List.range(0,outer.width)) yield (new Region(r+1))
+    
+    def holes : List[Place] = for(r <- List.range(0,inner.width)) yield (new Hole(r))
+
+    def places : Set[Place] = V ++ holes ++ regions
 }
 
 

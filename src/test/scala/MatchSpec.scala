@@ -17,6 +17,67 @@ class MatchSpecTest extends SpecificationWithJUnit {
             matcher.candidates(n).size mustEqual 1
         }
     }
+    "Matching ground redexes" should {
+        "find 1 occurence of 'a.nil' in 'a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 1 occurence of 'a.nil' in 'b.a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("b.a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 2 occurences of 'a.nil' in 'b.a.nil | b.a.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("b.a.nil | b.a.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 1 occurence of 'a.b.nil' in 'a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 1 occurence of 'a.b.nil' in 'a.a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 2 occurences of 'a.b.nil' in 'a.b.nil | a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.nil | a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 2 occurences of 'a.b.nil' in 'a.a.b.nil | a.a.b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.a.b.nil | a.a.b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 0 occurences of 'a.b.nil' in 'a.b.c.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.b.c.nil")
+            val b2 = MetaCalcParser.toBigraph("a.b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+
+
+
+    }
     "Matching 'a.$0' in 'a.b.nil'" should {
         "find 1 occurence" in new matchtest {
             matches.size mustEqual 1
