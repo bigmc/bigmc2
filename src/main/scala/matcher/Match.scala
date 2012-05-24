@@ -55,5 +55,7 @@ class Match (val B : Bigraph,
 
         k
     }
+
+    def matchedPlaces : Set[Place] = Set() ++ mapping.values
 }
 

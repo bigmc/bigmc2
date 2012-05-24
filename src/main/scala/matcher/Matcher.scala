@@ -107,8 +107,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
                 }
             }
 
-            println("Kmap: " + kmap)
-
             var cand : Set[Match] = kmap.head._2
 
             for(m <- kmap.tail) yield {
@@ -123,9 +121,17 @@ class Matcher (B : Bigraph, redex : Bigraph) {
                 return Set() ++ altMatches
             }
 
+            val cleanCand = if(haystack.forall(x => B.prnt(x).isRegion)) {
+                cand
+            } else {
+                cand.filter(a => {
+                    haystack subsetOf a.matchedPlaces
+                })
+            }
+
             println("kmap cand: " + B + "\n" + redex + "\n" + cand)
 
-            return cand ++ altMatches
+            return cleanCand ++ altMatches
         }
 
         Set() ++ altMatches
