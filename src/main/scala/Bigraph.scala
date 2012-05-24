@@ -16,7 +16,7 @@ class Bigraph(val V : Set[Node],
         p match {
             case h : Hole => "$" + h.id
             case n : Node => {
-                val c = children(n)
+                val c = children(n).toList
 
                 if(c.size == 0) {
                     ctrl(n) + ".nil"
@@ -27,7 +27,7 @@ class Bigraph(val V : Set[Node],
                 }
             }
             case r : Region => {
-                 val c = children(r)
+                 val c = children(r).toList
 
                  c.map(x => toMetaCalcString(x)).mkString(" | ") 
             }
