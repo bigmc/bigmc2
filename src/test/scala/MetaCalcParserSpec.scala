@@ -9,6 +9,7 @@ import org.bigraph.bigmc._
 import org.bigraph.bigmc.parser._
 
 import scala.collection.immutable.Map
+import scala.collection.immutable.Set
 
 @RunWith(classOf[JUnitRunner])
 class MetaCalcParserSpecTest extends SpecificationWithJUnit {

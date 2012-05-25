@@ -9,6 +9,7 @@ import org.bigraph.bigmc.matcher._
 import org.bigraph.bigmc.parser._
 
 import scala.collection.immutable.Map
+import scala.collection.immutable.Set
 
 @RunWith(classOf[JUnitRunner])
 class MatchSpecTest extends SpecificationWithJUnit {
@@ -277,6 +278,16 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 2
         }
+
+        "match 3 nodes in $1 for 'a.$0 || b.(c | $1)' in 'a.nil | a.nil | b.(c.nil | a.nil | a.b.nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil | a.nil | b.(c.nil | a.nil | a.b.nil)")
+            val b2 = MetaCalcParser.toBigraph("a.$0 || b.(c | $1)")
+            val m = new Matcher(b1,b2)
+            val k = m.all
+
+            k.head.getParam(1).size mustEqual 3
+        }
+
     }
 
     "Wide agent matching" should {

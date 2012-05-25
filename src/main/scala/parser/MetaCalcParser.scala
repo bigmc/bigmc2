@@ -3,6 +3,9 @@ package org.bigraph.bigmc.parser
 import org.bigraph.bigmc._
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 
+import scala.collection.immutable.Map
+import scala.collection.immutable.Set
+
 /*
  r ::= r || r
    ::= p

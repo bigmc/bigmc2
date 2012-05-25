@@ -2,6 +2,9 @@ package org.bigraph.bigmc.matcher
 
 import org.bigraph.bigmc._
 
+import scala.collection.immutable.Map
+import scala.collection.immutable.Set
+
 class NoMatch() extends Exception {
 
 }
@@ -182,8 +185,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         val candX : Set[Match] = kmap.head._2
 
         if(kmap.size == 1) return candX
-
-        println("KMAP: " + redex.toNiceString + " / " + B.toNiceString + "\n" + kmap)
 
         var cand = Match.candFold(kmap.tail, candX, true)
 

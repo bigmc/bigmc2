@@ -1,5 +1,8 @@
 package org.bigraph.bigmc
 
+import scala.collection.immutable.Map
+import scala.collection.immutable.Set
+
 /** The core representation of a static bigraph. */
 class Bigraph(val V : Set[Node],
               val E : Set[Edge], 

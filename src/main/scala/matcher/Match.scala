@@ -2,6 +2,9 @@ package org.bigraph.bigmc.matcher
 
 import org.bigraph.bigmc._
 
+import scala.collection.immutable.Map
+import scala.collection.immutable.Set
+
 class Match (val B : Bigraph, 
              val redex : Bigraph) {
 
@@ -69,6 +72,11 @@ class Match (val B : Bigraph,
         case p : Parameter => p.contents
         case x => Set(x)
     }).flatten
+
+    def getParam (id : Int) : Set[Place] = mapping.getOrElse(new Hole(id), new Parameter(Set())) match {
+        case p : Parameter => p.contents
+        case _ => Set()
+    }
 }
 
 object Match {

@@ -7,6 +7,7 @@ import org.specs2.runner._
 import org.bigraph.bigmc._
 
 import scala.collection.immutable.Map
+import scala.collection.immutable.Set
 
 @RunWith(classOf[JUnitRunner])
 class BigraphSpecTest extends SpecificationWithJUnit {

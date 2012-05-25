@@ -5,11 +5,15 @@ trait Place {
 	def isRegion: Boolean
     def isHole: Boolean
     
-    override def equals(other : Any) : Boolean = other match {
-        case that : Region => that == this
-        case that : Hole => that == this
-        case that : Node => that == this
-        case _ => false
+    override def equals(other : Any) : Boolean = {
+        println("Calling Place equality!")
+
+        other match {
+            case that : Region => that == this
+            case that : Hole => that == this
+            case that : Node => that == this
+            case _ => false
+        }
     }
 }
 
