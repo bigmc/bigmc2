@@ -126,6 +126,11 @@ class Bigraph(val V : Set[Node],
         }
         case _ => Set()
     }
+
+    def ports (n : Node) : Set[Link] = link.filter(m => m match {
+        case (p : Port, _) => true
+        case _ => false
+    }).map(x => x._1).toSet
 }
 
 

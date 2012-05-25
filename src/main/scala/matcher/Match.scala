@@ -13,6 +13,8 @@ class Match (val B : Bigraph,
     var mapping : Map[Place,Place] = Map()
     var root : Place = null
 
+    var linkMap : Map[Link,Link] = Map()
+
     def success = successful = true
     def failure = {
         successful = false
@@ -24,9 +26,14 @@ class Match (val B : Bigraph,
             mapping += p -> q
     }
 
+    def addLink (l : Link, r : Link) = {
+        linkMap += l -> r
+    }
+
     override def toString = 
         "Match[\n" +
         "  mapping: " + mapping + "\n" +
+        "  linking: " + linkMap + "\n" +
         "  root: " + root + "\n" +
         "  successful: " + successful + "\n" +
         "  failed: " + failed +
@@ -61,6 +68,7 @@ class Match (val B : Bigraph,
     def merge(m : Match) : Match = {
         val k = new Match(B,redex)
         k.mapping = mapping ++ m.mapping
+        k.linkMap = linkMap ++ m.linkMap
         k.root = root
         k.successful = successful
         k.failed = failed

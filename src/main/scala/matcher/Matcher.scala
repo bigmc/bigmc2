@@ -15,6 +15,70 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         B.V.filter(v => B.ctrl(v) == redex.ctrl(n))
     }
 
+    /* Attempt to take a place graph match and extend it to include
+       a link match, or otherwise have it fail. */
+    def linkMatch(link : Map[Link,Link], ma : Set[Match]) : Set[Match] = {
+        var matches = ma
+
+        //println("LinkMatchPrePre: " + matches + " link: " + link)
+
+        if(link.size == 0) return ma
+        
+        val inner = link.head._1
+        val outer = link.head._2
+
+        println("LinkMatchPre: " + matches)
+        
+        matches = (for(m <- matches) yield {
+
+            // We have already matched this before. Subsequent matches should still agree.
+            if(m.linkMap contains outer) {
+                inner match {
+                    case p : Port => {
+                        val other : Port = m.mapping(p.node) match {
+                            case x : Node => new Port(x,p.id)
+                            case _ => throw new IllegalArgumentException("Invalid port: " + p)
+                        }
+
+                        if(!(B.link contains other) || B.link(other) != m.linkMap(outer)) {
+                            // Invalid match.  Discard it.
+                            return Set()
+                        } else {
+                            // This match is still fine.  Preserve it.
+                            return Set(m)
+                        }
+                    }
+                    case n : Name => {
+                        // I simply don't know what to do here right now.  Throw exception.
+                        throw new IllegalArgumentException("case n : Name not implemented in linkMatch")
+                    }
+                }
+            } else {
+                // We have not seen this before.  Bind it all possible ways.
+                outer match {
+                    case e : Edge => {
+                        for(f <- B.E) yield {
+                            val nm = m.dup
+                            nm.addLink(e,f)
+                            nm
+                        }
+                    }
+                    case n : Name => {
+                        for(bo <- B.outer.names) yield {
+                            val nm = m.dup
+                            nm.addLink(n,bo)
+                            nm
+                        }
+                    }
+                }
+            }
+        }).toSeq.flatten.toSet
+
+        println("LinkMatch: " + matches)
+
+        linkMatch(link.tail, matches)
+    }
+
     def placeMatch(agent : Place, pattern : Place, ma : Match) : Match = (agent,pattern) match {
         case (n : Node, m : Node) => {
             if (B.ctrl(n) == redex.ctrl(m)) {
@@ -182,11 +246,18 @@ class Matcher (B : Bigraph, redex : Bigraph) {
 
         val candX : Set[Match] = kmap.head._2
 
-        if(kmap.size == 1) return candX
+        if(kmap.size == 1) return linkMatch(redex.link, candX)
+
+        if(redex.link.size > 0) {
+            println("REDEX HAS LINKS! " + redex.link)
+        } else {
+        }
 
         var cand = Match.candFold(kmap.tail, candX, true)
 
-        cand
+        val lMatch = linkMatch(redex.link, cand)
+
+        lMatch
     }
 }
 
