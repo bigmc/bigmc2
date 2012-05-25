@@ -5,7 +5,7 @@ class Region(val id : Int) extends Place {
 	override def isRegion = true
 	override def isHole = false
 
-    override def hashCode = 47 * (41 + id)
+    override def hashCode = 47 * (47 + id)
 
     override def equals(other : Any) : Boolean = other match {
         case that : Region => that.id == id

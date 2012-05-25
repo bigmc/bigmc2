@@ -51,8 +51,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         }
     }
 
-    
-
     def find(haystack : Set[Place], needle : Set[Place], m : Match) : Set[Match] = {
         // Nothing to match.  We're done!
         if(needle.size == 0 && haystack.size == 0) {
@@ -187,11 +185,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         if(kmap.size == 1) return candX
 
         var cand = Match.candFold(kmap.tail, candX, true)
-
-        /*println("Matches for: " + redex.toNiceString + " / " + B.toNiceString + ":")
-        println("Redex: " + redex)
-        println("Agent: " + B)
-        println("Matches: " + cand.map(x => x.toString + " with " + x.matchedPlaces).mkString("\n") + "\n")*/
 
         cand
     }

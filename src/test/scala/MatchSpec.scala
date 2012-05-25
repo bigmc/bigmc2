@@ -336,6 +336,45 @@ class MatchSpecTest extends SpecificationWithJUnit {
         }
     }
 
+    "Link graph matching" should {
+        "find 1 occurence of 'a[x].nil in 'a[z].nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a[x].nil")
+            val b2 = MetaCalcParser.toBigraph("a[z].nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 0 occurences of 'a[x,y].nil' in 'a[z].nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a[x,y].nil")
+            val b2 = MetaCalcParser.toBigraph("a[z].nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 0 occurences of 'a[x].nil' in 'a[y,z].nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a[x].nil")
+            val b2 = MetaCalcParser.toBigraph("a[y,z].nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 1 occurence of '(νx) (a[x].nil | a[x].nil)' in '(νy) (a[y].nil | a[y].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νy) (a[y].nil | a[y].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νx) (a[x].nil | a[x].nil)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 0 occurences of '(νx) (a[x].nil | a[x].nil)' in '(νy) a[y].nil | (νx) a[x].nil'" in {
+            val b1 = MetaCalcParser.toBigraph("(νy) a[y].nil | (νx) a[x].nil")
+            val b2 = MetaCalcParser.toBigraph("(νx) (a[x].nil | a[x].nil)")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+
+
+    }
 }
 
 trait matchtest extends Scope {
