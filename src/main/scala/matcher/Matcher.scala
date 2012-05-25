@@ -48,9 +48,7 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         }
     }
 
-    def matchProduct (prefixes : Set[Match], suffixes : Set[Match]) : Set[Match] = {
-        for (p <- prefixes; s <- suffixes; if(p.isCompatible(s))) yield p.merge(s)
-    }
+    
 
     def find(haystack : Set[Place], needle : Set[Place], m : Match) : Set[Match] = {
         // Nothing to match.  We're done!
@@ -125,15 +123,7 @@ class Matcher (B : Bigraph, redex : Bigraph) {
 
             val candX : Set[Match] = kmap.head._2
 
-            def candFold (k : Map[Place,Set[Match]],res : Set[Match]) : Set[Match] = {
-                if(k.size == 0) {
-                    res
-                } else {
-                    candFold(k.tail, matchProduct(res,k.head._2))
-                }
-            }
-
-            var cand = candFold(kmap.tail, candX)
+            var cand = Match.candFold(kmap.tail, candX, false)
             
             if(holes.size == 1) {
                 val hole = holes.head
@@ -145,7 +135,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
                     val cmpFlat = cmp ++ cmp.map(x => B.descendants(x)).flatten
 
                     c.addMapping(hole,new Parameter(cmpFlat))
-                    println("Filling hole: haystack: " + haystack + " / matched: " + c.matchedPlaces + " c: " + cmpFlat)
                     c
                 }
             }
@@ -156,13 +145,10 @@ class Matcher (B : Bigraph, redex : Bigraph) {
             }
 
             val cleanCand = if(needle.forall(x => redex.prnt(x).isRegion)) {
-                    println("No Filter for: " + redex.toNiceString + " / " + B.toNiceString + ":")
                 cand
             } else {
                 cand.filter(a => {
                     val k = haystack subsetOf a.matchedPlaces
-                    println("Filter for: " + redex.toNiceString + " / " + B.toNiceString + ":")
-                    println("haystack: " + haystack + " / matched: " + a.matchedPlaces + " res: " + k)
                     k
                 })
             }
@@ -175,19 +161,38 @@ class Matcher (B : Bigraph, redex : Bigraph) {
     }
 
     def all : Set[Match] = {
-        val places = B.regions
+        val places = B.regions.toSet
+        val red = redex.regions.toSet
 
-        val m = (for(p <- places) yield {
-            val ma = new Match(B,redex)
-            find(Set(p),redex.regions.toSet,ma)
-        }).flatten
-  
-        println("Matches for: " + redex.toNiceString + " / " + B.toNiceString + ":")
+        var kmap : Map[Place,Set[Match]] = Map()
+
+        val m = new Match(B,redex)
+
+        for(n <- red; h <- places) yield {
+            if(kmap contains n) {
+                kmap = kmap + (n -> (find(Set(h),Set(n),m.dup) ++ kmap(n)))
+            } else {
+                kmap = kmap + (n -> find(Set(h),Set(n),m.dup))
+            }
+        }
+
+ 
+        if(kmap.size == 0) {
+            return Set()
+        }
+
+        val candX : Set[Match] = kmap.head._2
+
+        if(kmap.size == 1) return candX
+
+        var cand = Match.candFold(kmap.tail, candX, true)
+
+        /*println("Matches for: " + redex.toNiceString + " / " + B.toNiceString + ":")
         println("Redex: " + redex)
         println("Agent: " + B)
-        println("Matches: " + m.map(x => x.toString + " with " + x.matchedPlaces).mkString("\n") + "\n")
+        println("Matches: " + cand.map(x => x.toString + " with " + x.matchedPlaces).mkString("\n") + "\n")*/
 
-        m.toSet
+        cand
     }
 }
 

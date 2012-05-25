@@ -37,15 +37,15 @@ class Match (val B : Bigraph,
         m
     }
 
-    def isCompatible(m : Match) : Boolean = {
-        if(m.root != root) return false
-
+    def isWideCompatible(m : Match) : Boolean = {
         // Two keys aren't mapped to different things.
         if(!mapping.forall(k => if(m.mapping contains k._1) m.mapping(k._1) == k._2 else true)) return false
 
-        // The same rhs isn't used twice for different things.
-        mapping.forall(k => !m.mapping.exists(j => (k._2 == j._2 && k._1 != j._1)))
+        // Relax the restriction to let regions disagree on the RHS.
+        mapping.forall(k => !m.mapping.exists(j => (k._2 == j._2 && k._1 != j._1 && !k._2.isRegion)))
     }
+
+    def isCompatible(m : Match) : Boolean = m.root == root && isWideCompatible(m) && mapping.forall(k => !m.mapping.exists(j => (k._2 == j._2 && k._1 != j._1)))
 
     def merge(m : Match) : Match = {
         val k = new Match(B,redex)
@@ -56,10 +56,34 @@ class Match (val B : Bigraph,
 
         k
     }
-
+    
     def matchedPlaces : Set[Place] = Set() ++ mapping.values.map(x => x match {
         case p : Parameter => p.contents
         case x => Set(x)
     }).flatten
 }
 
+object Match {
+    def matchProduct (prefixes : Set[Match], suffixes : Set[Match]) : Set[Match] = {
+        for (p <- prefixes; s <- suffixes; if(p.isCompatible(s))) yield p.merge(s)
+    }
+
+    def matchWideProduct (prefixes : Set[Match], suffixes : Set[Match]) : Set[Match] = {
+        for (p <- prefixes; s <- suffixes; if(p.isWideCompatible(s))) yield p.merge(s)
+    }
+
+    def candFold (k : Map[Place,Set[Match]],res : Set[Match], wide : Boolean) : Set[Match] = {
+        if(k.size == 0) {
+             //println("RES FINAL: " + res)
+            res
+        } else {
+            //println("RES: " + res)
+            if(!wide) {
+                candFold(k.tail, matchProduct(res,k.head._2),wide)
+            } else {
+                candFold(k.tail, matchWideProduct(res,k.head._2),wide)
+            }
+        }
+    }
+
+}

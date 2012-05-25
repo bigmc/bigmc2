@@ -233,10 +233,17 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
 
     }
-    "Wide parametric matching" should {
+    "Wide redex matching" should {
+        "find 1 occurence of 'a.nil || b.nil' in 'a.nil | b.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("a.nil | b.nil")
+            val b2 = MetaCalcParser.toBigraph("a.nil || b.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
         "find 1 occurence of 'a.$0 || b.$0' in 'a.b.nil | b.c.nil'" in {
             val b1 = MetaCalcParser.toBigraph("a.b.nil | b.c.nil")
-            val b2 = MetaCalcParser.toBigraph("a.$0 || b.$0")
+            val b2 = MetaCalcParser.toBigraph("a.$0 || b.$1")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 1
