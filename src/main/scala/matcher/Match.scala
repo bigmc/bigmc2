@@ -17,7 +17,8 @@ class Match (val B : Bigraph,
     }
 
     def addMapping (p : Place, q : Place) = {
-        mapping += p -> q
+        if(!p.isRegion) 
+            mapping += p -> q
     }
 
     override def toString = 
@@ -38,14 +39,21 @@ class Match (val B : Bigraph,
     }
 
     def isWideCompatible(m : Match) : Boolean = {
+        (matchedPlaces & m.matchedPlaces).size == 0
+
         // Two keys aren't mapped to different things.
-        if(!mapping.forall(k => if(m.mapping contains k._1) m.mapping(k._1) == k._2 else true)) return false
+ //       if(!mapping.forall(k => if(m.mapping contains k._1) (m.mapping(k._1) == k._2) else true)) return false
 
         // Relax the restriction to let regions disagree on the RHS.
-        mapping.forall(k => !m.mapping.exists(j => (k._2 == j._2 && k._1 != j._1 && !k._2.isRegion)))
+        //mapping.forall(k => !m.matchedPlaces.exists(j => k._2 == j))
+   //     true
     }
 
-    def isCompatible(m : Match) : Boolean = m.root == root && isWideCompatible(m) && mapping.forall(k => !m.mapping.exists(j => (k._2 == j._2 && k._1 != j._1)))
+    def isCompatible(m : Match) : Boolean = {
+        m.root == root && 
+           mapping.forall(k => !m.mapping.exists(j => (k._2 == j._2 && k._1 != j._1))) &&
+            mapping.forall(k => if(m.mapping contains k._1) m.mapping(k._1) == k._2 else true)
+    }
 
     def merge(m : Match) : Match = {
         val k = new Match(B,redex)

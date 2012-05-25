@@ -166,13 +166,11 @@ class Matcher (B : Bigraph, redex : Bigraph) {
 
         var kmap : Map[Place,Set[Match]] = Map()
 
-        val m = new Match(B,redex)
-
-        for(n <- red; h <- places) yield {
+        val m = for(n <- red; h <- places) yield {
             if(kmap contains n) {
-                kmap = kmap + (n -> (find(Set(h),Set(n),m.dup) ++ kmap(n)))
+                kmap = kmap + (n -> (find(Set(h),Set(n),new Match(B,redex)) ++ kmap(n)))
             } else {
-                kmap = kmap + (n -> find(Set(h),Set(n),m.dup))
+                kmap = kmap + (n -> find(Set(h),Set(n),new Match(B,redex)))
             }
         }
 
@@ -184,6 +182,8 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         val candX : Set[Match] = kmap.head._2
 
         if(kmap.size == 1) return candX
+
+        println("KMAP: " + redex.toNiceString + " / " + B.toNiceString + "\n" + kmap)
 
         var cand = Match.candFold(kmap.tail, candX, true)
 
