@@ -98,7 +98,7 @@ class Matcher (B : Bigraph, redex : Bigraph) {
 
             var matchedName = false
             for(p <- portset) yield {
-                if(B.link(p) == m.linkMap(redex.link(n))) {
+                if((redex.link contains n) && (m.linkMap contains redex.link(n)) && B.link(p) == m.linkMap(redex.link(n))) {
                     // Success
                     matchedName = true
                 } else {

@@ -377,8 +377,6 @@ class MatchSpecTest extends SpecificationWithJUnit {
             val b2 = MetaCalcParser.toBigraph("(νe) ((a[e].nil | $0) || [x |-> e])")
             val m = new Matcher(b1,b2)
 
-            println("Successful matches: " + m.all)
-
             m.all.size mustEqual 1
         }
         "find 0 occurences of '(νe) ((a[e].nil | $0) || [x |-> e])' in '(νx) (a[x].nil | c.b.nil)'" in {
@@ -400,7 +398,6 @@ class MatchSpecTest extends SpecificationWithJUnit {
             val b2 = MetaCalcParser.toBigraph("(νe) ((a[e,q].nil | $0) || [x |-> e])")
             val m = new Matcher(b1,b2)
 
-            println("Successful matches: " + m.all)
 
             m.all.size mustEqual 1
         }
@@ -418,6 +415,28 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 4
         }
+        "find 1 occurence of '(νe) ((a[e].nil | $0) || [x |-> e])' in '(νx) (a[x].nil | c.b[x,x].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x].nil | c.b[x,x].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) ((a[e].nil | $0) || [x |-> e])")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
+        "find 2 occurence of '(νe) ((a[e].nil | c.$0 | c.$1) || [x |-> e])' in '(νx) (a[x].nil | c.b[x].nil | c.d[x].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x].nil | c.b[x].nil | c.d[x].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) ((a[e].nil | c.$0 | c.$1) || [x |-> e])")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 4 occurences of '(νe)(νf)((a[e].nil | c.$0 | a[f].nil | c.$1) || [x |-> e] || [y |-> f])' in '(νx)(νy) (a[x].nil | c.b[x].nil | a[y].nil | c.d[y].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx)(νy) (a[x].nil | c.b[x].nil | a[y].nil | c.d[y].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe)(νf)((a[e].nil | c.$0 | a[f].nil | c.$1) || [x |-> e] || [y |-> f])")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 4
+        }
+
     }
 
     "Parameter set" should {
