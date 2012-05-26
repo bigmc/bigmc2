@@ -85,6 +85,11 @@ class Match (val B : Bigraph,
         case p : Parameter => p.contents
         case _ => Set()
     }
+
+    def parameters : Set[Place] = mapping.values.map(x => x match {
+        case p : Parameter => p.contents
+        case _ => Set()
+    }).toSet.flatten
 }
 
 object Match {

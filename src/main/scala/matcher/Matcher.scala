@@ -15,68 +15,115 @@ class Matcher (B : Bigraph, redex : Bigraph) {
         B.V.filter(v => B.ctrl(v) == redex.ctrl(n))
     }
 
-    /* Attempt to take a place graph match and extend it to include
-       a link match, or otherwise have it fail. */
-    def linkMatch(link : Map[Link,Link], ma : Set[Match]) : Set[Match] = {
-        var matches = ma
+    def matchedPort(m : Match, p : Link) : Port = {
+        p match {
+            case p : Port => {
+                val n : Node = m.mapping(p.node) match {
+                    case n : Node => n
+                    case _ => throw new IllegalArgumentException("Non-node in port")
+                }
+                new Port(n, p.id)
+            }
+            case _ => throw new IllegalArgumentException("Non-port passed to matchedPort")
+        }
+    }
 
-        //println("LinkMatchPrePre: " + matches + " link: " + link)
+    def linkMatchOnce(m : Match) : Set[Match] = {
+        val places = m.matchedPlaces
 
-        if(link.size == 0) return ma
+        val ports = redex.link.filter(l => l._1 match {
+            case p : Port => true
+            case _ => false
+        })
+
+        val innerNames = redex.link.filter(l => l._1 match {
+            case n : Name => true
+            case _ => false
+        })
+
+
+        if(ports.size == 0 && innerNames.size == 0) {
+            return Set(m)
+        }
         
-        val inner = link.head._1
-        val outer = link.head._2
+        for(pa <- ports) yield {
+            val p = pa._1
+            val a = pa._2
 
-        println("LinkMatchPre: " + matches)
-        
-        matches = (for(m <- matches) yield {
+            val op = matchedPort(m,p)
+            // For a given port (p) and assignment (a), find the
+            // other port (op) and ensure it is assigned to something
+            // compatible according to m.linkMap, otherwise assign it.
 
-            // We have already matched this before. Subsequent matches should still agree.
-            if(m.linkMap contains outer) {
-                inner match {
-                    case p : Port => {
-                        val other : Port = m.mapping(p.node) match {
-                            case x : Node => new Port(x,p.id)
-                            case _ => throw new IllegalArgumentException("Invalid port: " + p)
-                        }
+            // Fail if we can't find this port in the link map for B
+            if(!(B.link contains op)) {
+                m.failure
+                println("Couldn't find: " + op)
+                return Set()
+            }
 
-                        if(!(B.link contains other) || B.link(other) != m.linkMap(outer)) {
-                            // Invalid match.  Discard it.
-                            return Set()
-                        } else {
-                            // This match is still fine.  Preserve it.
-                            return Set(m)
-                        }
-                    }
-                    case n : Name => {
-                        // I simply don't know what to do here right now.  Throw exception.
-                        throw new IllegalArgumentException("case n : Name not implemented in linkMatch")
-                    }
+            val oa = B.link(op)
+
+            // This is already matched in the link map, so oa and linkMap(a) must agree.
+            if(m.linkMap contains a) {
+                if(oa != m.linkMap(a)) {
+                    m.failure
+                    return Set()
                 }
             } else {
-                // We have not seen this before.  Bind it all possible ways.
-                outer match {
-                    case e : Edge => {
-                        for(f <- B.E) yield {
-                            val nm = m.dup
-                            nm.addLink(e,f)
-                            nm
-                        }
+                // Doesn't exist in the link map, so we add it.
+                m.addLink(a,oa)
+            }
+        }
+
+        val params = m.parameters
+
+        for(na <- innerNames) yield {
+            val n = na._1
+            val a = na._2
+
+            val portset = (for(p <- params) yield {
+                B.link.filter(x => x._1 match {
+                    case x : Port => {
+                        x.node == p
                     }
-                    case n : Name => {
-                        for(bo <- B.outer.names) yield {
-                            val nm = m.dup
-                            nm.addLink(n,bo)
-                            nm
-                        }
-                    }
+                    case _ => false
+                }).map(x => x._1)
+            }).toSet.flatten
+
+            if(portset.size == 0) {
+                m.failure
+                return Set()
+            }
+
+            var matchedName = false
+            for(p <- portset) yield {
+                if(B.link(p) == m.linkMap(redex.link(n))) {
+                    // Success
+                    matchedName = true
+                } else {
+                    ()
                 }
             }
-        }).toSeq.flatten.toSet
 
-        println("LinkMatch: " + matches)
+            if(matchedName) {
+                ()
+            } else {
+                return Set()
+            }
+        }
 
-        linkMatch(link.tail, matches)
+        Set(m)
+    }
+
+    /* Attempt to take a place graph match and extend it to include
+       a link match, or otherwise have it fail. */
+    def linkMatch(ma : Set[Match]) : Set[Match] = {
+        var matches = ma
+        
+        (for(m <- ma) yield {
+            linkMatchOnce(m)
+        }).flatten.toSet
     }
 
     def placeMatch(agent : Place, pattern : Place, ma : Match) : Match = (agent,pattern) match {
@@ -246,16 +293,11 @@ class Matcher (B : Bigraph, redex : Bigraph) {
 
         val candX : Set[Match] = kmap.head._2
 
-        if(kmap.size == 1) return linkMatch(redex.link, candX)
-
-        if(redex.link.size > 0) {
-            println("REDEX HAS LINKS! " + redex.link)
-        } else {
-        }
+        if(kmap.size == 1) return linkMatch(candX)
 
         var cand = Match.candFold(kmap.tail, candX, true)
 
-        val lMatch = linkMatch(redex.link, cand)
+        val lMatch = linkMatch(cand)
 
         lMatch
     }

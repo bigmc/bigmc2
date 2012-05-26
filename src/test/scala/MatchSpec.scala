@@ -345,25 +345,25 @@ class MatchSpecTest extends SpecificationWithJUnit {
             m.all.size mustEqual 1
         }
         "find 0 occurences of 'a[x,y].nil' in 'a[z].nil'" in {
-            val b1 = MetaCalcParser.toBigraph("a[x,y].nil")
-            val b2 = MetaCalcParser.toBigraph("a[z].nil")
+            val b1 = MetaCalcParser.toBigraph("a[z].nil")
+            val b2 = MetaCalcParser.toBigraph("a[x,y].nil")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 0
         }
         "find 0 occurences of 'a[x].nil' in 'a[y,z].nil'" in {
-            val b1 = MetaCalcParser.toBigraph("a[x].nil")
-            val b2 = MetaCalcParser.toBigraph("a[y,z].nil")
+            val b1 = MetaCalcParser.toBigraph("a[y,z].nil")
+            val b2 = MetaCalcParser.toBigraph("a[x].nil")
             val m = new Matcher(b1,b2)
 
             m.all.size mustEqual 0
         }
-        "find 1 occurence of '(νx) (a[x].nil | a[x].nil)' in '(νy) (a[y].nil | a[y].nil)'" in {
+        "find 2 occurences of '(νx) (a[x].nil | a[x].nil)' in '(νy) (a[y].nil | a[y].nil)'" in {
             val b1 = MetaCalcParser.toBigraph("(νy) (a[y].nil | a[y].nil)")
             val b2 = MetaCalcParser.toBigraph("(νx) (a[x].nil | a[x].nil)")
             val m = new Matcher(b1,b2)
 
-            m.all.size mustEqual 1
+            m.all.size mustEqual 2
         }
         "find 0 occurences of '(νx) (a[x].nil | a[x].nil)' in '(νy) a[y].nil | (νx) a[x].nil'" in {
             val b1 = MetaCalcParser.toBigraph("(νy) a[y].nil | (νx) a[x].nil")
@@ -372,8 +372,67 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 0
         }
+        "find 1 occurence of '(νe) ((a[e].nil | $0) || [x |-> e])' in '(νx) (a[x].nil | c.b[x].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x].nil | c.b[x].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) ((a[e].nil | $0) || [x |-> e])")
+            val m = new Matcher(b1,b2)
 
+            println("Successful matches: " + m.all)
 
+            m.all.size mustEqual 1
+        }
+        "find 0 occurences of '(νe) ((a[e].nil | $0) || [x |-> e])' in '(νx) (a[x].nil | c.b.nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x].nil | c.b.nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) ((a[e].nil | $0) || [x |-> e])")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 0 occurences of '(νe) ((a[e].nil | $0) || [x |-> e])' in '(νx) (a[x].nil | c.b[y].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x].nil | c.b[y].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) ((a[e].nil | $0) || [x |-> e])")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 0
+        }
+        "find 1 occurences of '(νe) ((a[e,q].nil | $0) || [x |-> e])' in '(νx) (a[x,p].nil | c.b[x].nil)'" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x,p].nil | c.b[x].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) ((a[e,q].nil | $0) || [x |-> e])")
+            val m = new Matcher(b1,b2)
+
+            println("Successful matches: " + m.all)
+
+            m.all.size mustEqual 1
+        }
+        "find 2 occurences of 'a[x] | b[x]' in 'a[k] | b[k] | b[j] | b[k]'" in {
+            val b1 = MetaCalcParser.toBigraph("a[k] | b[k] | b[j] | b[k]")
+            val b2 = MetaCalcParser.toBigraph("a[x] | b[x]")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 2
+        }
+        "find 4 occurences of 'a[x] | b[x]' in 'a[k] | b[k] | b[k] | a[k]'" in {
+            val b1 = MetaCalcParser.toBigraph("a[k] | b[k] | b[k] | a[k]")
+            val b2 = MetaCalcParser.toBigraph("a[x] | b[x]")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 4
+        }
+    }
+
+    "Parameter set" should {
+        "be of size 2 for '(νe) (a[e].nil | $0)' in '(νx) (a[x].nil | c.b[y].nil)" in {
+            val b1 = MetaCalcParser.toBigraph("(νx) (a[x].nil | c.b[y].nil)")
+            val b2 = MetaCalcParser.toBigraph("(νe) (a[e].nil | $0)")
+            val m = new Matcher(b1,b2)
+
+            val ma = m.all
+
+            println("MA: " + ma.head.parameters)
+            println("b1: " + b1)
+
+            ma.head.parameters.size mustEqual 2
+        }
     }
 }
 
