@@ -14,6 +14,7 @@ class Match (val B : Bigraph,
     var root : Place = null
 
     var linkMap : Map[Link,Link] = Map()
+    var nameMap : Map[Link,Link] = Map()
 
     def success = successful = true
     def failure = {
@@ -30,10 +31,17 @@ class Match (val B : Bigraph,
         linkMap += l -> r
     }
 
+    /* Maps inner names of the redex to outer names in parameters */
+    def addName (l : Link, r : Link) = {
+        nameMap += l -> r
+    }
+
+
     override def toString = 
         "Match[\n" +
         "  mapping: " + mapping + "\n" +
         "  linking: " + linkMap + "\n" +
+        "  names: " + nameMap + "\n" +
         "  root: " + root + "\n" +
         "  successful: " + successful + "\n" +
         "  failed: " + failed +
