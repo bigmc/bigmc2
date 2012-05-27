@@ -453,6 +453,20 @@ class MatchSpecTest extends SpecificationWithJUnit {
             ma.head.parameters.size mustEqual 2
         }
     }
+
+    "toContext" should {
+        "Recompose 'a.$0 | b.$1' matched in 'a.c | b.d'" in {
+            val b1 = MetaCalcParser.toBigraph("a.c | b.d")
+            val b2 = MetaCalcParser.toBigraph("a.$0 | b.$1")
+            val m = new Matcher(b1,b2)
+
+            val m1 = m.all.head.toContext
+
+            val b3 = m1._1 compose m1._2 compose m1._3
+
+            b3.toNiceString mustEqual "a.c.nil | b.d.nil"
+        }
+    }
 }
 
 trait matchtest extends Scope {

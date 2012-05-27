@@ -131,8 +131,8 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "have inner width 1 for '(νz)([x |-> z] || [y |-> z] || a.$0)'" in {
             MetaCalcParser.toBigraph("(νz)([x |-> z] || [y |-> z] || a.$0)").inner.width mustEqual 1
         }
-        "have parent '2' for $1 in 'a.$0 || $1'" in {
-            MetaCalcParser.toBigraph("a.$0 || $1").prnt(new Hole(1)) mustEqual (new Region(2))
+        "have parent 'R1' for $1 in 'a.$0 || $1'" in {
+            MetaCalcParser.toBigraph("a.$0 || $1").prnt(new Hole(1)) mustEqual (new Region(1))
         }
         "have parent 'a' for 'b' in 'a.b.nil'" in {
             val b = MetaCalcParser.toBigraph("a.b.nil")

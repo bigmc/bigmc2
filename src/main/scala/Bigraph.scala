@@ -110,7 +110,7 @@ class Bigraph(val V : Set[Node],
         prnt.filter(m => m._2 == place).map(m => m._1).toSet
     }
 
-    def regions : List[Place] = for(r <- List.range(0,outer.width)) yield (new Region(r+1))
+    def regions : List[Place] = for(r <- List.range(0,outer.width)) yield (new Region(r))
     
     def holes : List[Place] = for(r <- List.range(0,inner.width)) yield (new Hole(r))
 

@@ -207,8 +207,9 @@ class BigraphTranslator {
     t match {
         case TWPar(l,r) => {
             translate(l,parent)
+            val ow = outerWidth
             outerWidth = outerWidth + 1
-            translate(r,new Region(outerWidth))
+            translate(r,new Region(ow))
         }
         case TZero() => ()
         case TPrefix(c,names,suff) => {
@@ -263,7 +264,7 @@ class BigraphTranslator {
     }}
 
     def toBigraph(t : Term) : Bigraph = {
-        translate(t.normalise(t),new Region(1))
+        translate(t.normalise(t),new Region(0))
 
         val b = new Bigraph(nodes,edges,ctrl,prnt,link,new Face(innerWidth,innerNames), new Face(outerWidth,outerNames))
 

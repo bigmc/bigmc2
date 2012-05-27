@@ -113,7 +113,7 @@ class Match (val B : Bigraph,
 
         val prnt = for(p <- B.prnt if ((Vp contains p._2) || p._2.isRegion)) yield {
             // The prnt link is entirely within the context, include it directly.
-            if(Vp contains p._1 ) {
+            if(Vp contains p._1) {
                 p
             } else {
                 // The parent is in the context, but the child is not.
@@ -126,7 +126,7 @@ class Match (val B : Bigraph,
                 }
 
                 redex.prnt(n._1) match {
-                    case r : Region => new Hole(r.id) -> p._1
+                    case r : Region => new Hole(r.id) -> B.prnt(n._2)
                     case _ => throw new IllegalArgumentException("Malformed match in toContext")
                 }
             }
@@ -141,9 +141,39 @@ class Match (val B : Bigraph,
 
         val C = new Bigraph(V,Set(),ctrl,prnt,Map(), new Face(redex.outer.width,Set()), B.outer)
 
-        println("Context: " + C + " / " + C.toNiceString)
+        val params = mapping.filter(x => x._1.isHole)
 
-        (C,redex,B)
+        println("Params: " + params)
+
+        val dV = (for(p <- params) yield {
+            p._2 match {
+                case h : Parameter => h.contents
+                case x => Set(x)
+            }
+        }).flatten.toSet
+
+        val dprnt : Map[Place,Place] = (for(p <- params) yield {
+            val hole = p._1 match {
+                case h : Hole => h
+                case _ => throw new IllegalArgumentException("Parameter key is invalid")
+            }
+            p._2 match {
+                case h : Parameter => h.contents.map(x => x -> new Region(hole.id))
+                case _ => throw new IllegalArgumentException("Non-parameter value found in site")
+            }
+        }).flatten.toMap ++ B.prnt.filter(x => dV contains x._2)
+
+
+        val dVn : Set[Node] = dV.map(x => x match { 
+            case x : Node => x
+            case _ => throw new IllegalArgumentException("Malformed node set in toContext")
+        })
+
+        val dctrl = B.ctrl.filter(p => dV contains p._1)
+
+        val D = new Bigraph(dVn,Set(),dctrl,dprnt,Map(),new Face(0,Set()), new Face(params.size,Set()))
+
+        (C,redex,D)
     }
 }
 
