@@ -98,6 +98,53 @@ class Match (val B : Bigraph,
         case p : Parameter => p.contents
         case _ => Set()
     }).toSet.flatten
+
+    /** Turn a match into three bigraphs - the context, the redex, and the parameters. **/
+    def toContext : (Bigraph,Bigraph,Bigraph) = {
+        /*
+            We basically take the original and subtract away
+            everything that was matched to obtain a context,
+            then we need to add the holes to the context.
+        */
+
+        val Vi : Set[Place] = Set() ++ B.V
+
+        val Vp = Vi -- matchedPlaces
+
+        val prnt = for(p <- B.prnt if ((Vp contains p._2) || p._2.isRegion)) yield {
+            // The prnt link is entirely within the context, include it directly.
+            if(Vp contains p._1 ) {
+                p
+            } else {
+                // The parent is in the context, but the child is not.
+                // So we have to figure out what the hole index of this should be.
+                // We look for the matching node in the redex (i.e. mapping contains
+                // an entry for this, mapped to something in the redex)
+                val n = mapping.find(k => k._2 == p._1) match {
+                    case None => throw new IllegalArgumentException("Malformed match in toContext")
+                    case Some(x) => x
+                }
+
+                redex.prnt(n._1) match {
+                    case r : Region => new Hole(r.id) -> p._1
+                    case _ => throw new IllegalArgumentException("Malformed match in toContext")
+                }
+            }
+        }
+
+        val ctrl = B.ctrl.filter(p => Vp contains p._1)
+
+        val V : Set[Node] = Vp.map(x => x match { 
+            case x : Node => x
+            case _ => throw new IllegalArgumentException("Malformed node set in toContext")
+        })
+
+        val C = new Bigraph(V,Set(),ctrl,prnt,Map(), new Face(redex.outer.width,Set()), B.outer)
+
+        println("Context: " + C + " / " + C.toNiceString)
+
+        (C,redex,B)
+    }
 }
 
 object Match {

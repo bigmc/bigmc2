@@ -1,5 +1,7 @@
 package org.bigraph.bigmc
 
+import org.bigraph.bigmc.matcher._
+
 import scala.collection.immutable.Map
 import scala.collection.immutable.Set
 
@@ -131,6 +133,14 @@ class Bigraph(val V : Set[Node],
         case (p : Port, _) => true
         case _ => false
     }).map(x => x._1).toSet
+
+    def apply (m : Match, reactum : Bigraph) : Bigraph = {
+        println("Trying to apply: " + m + " to : " + toNiceString + "\nreplacing: " + reactum.toNiceString)
+
+        println("Context: " + m.toContext)
+
+        this
+    }
 }
 
 

@@ -194,7 +194,6 @@ case class THole(index:Int) extends Term {
 
 class BigraphTranslator {
     var nodes : Set[Node] = Set()
-    var nodeId = 0
     var edges : Set[Edge] = Set()
     var ctrl : Map[Node,Control] = Map()
     var prnt : Map[Place,Place] = Map()
@@ -213,8 +212,8 @@ class BigraphTranslator {
         }
         case TZero() => ()
         case TPrefix(c,names,suff) => {
-            val n = new Node(nodeId)
-            nodeId = nodeId + 1
+            val n = new Node(BigraphTranslator.nodeId)
+            BigraphTranslator.nodeId = BigraphTranslator.nodeId + 1
             nodes += n
             val cn = new Control(c.toString)
             ctrl += n -> cn
@@ -273,6 +272,9 @@ class BigraphTranslator {
     
 }
 
+object BigraphTranslator {
+    var nodeId = 0
+}
 
 object MetaCalcParser extends StandardTokenParsers {
     lexical.delimiters ++= List(".",",","$","[","]","(",")","||","|","|->","(ν")
