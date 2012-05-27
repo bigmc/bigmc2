@@ -66,11 +66,6 @@ class BigraphSpecTest extends SpecificationWithJUnit {
 			b1b2.children(a).size mustEqual 1
 		}
 	}
-	"Applying a match" should {
-		"yield 'b.nil' for 'a -> b' applied to 'a.nil'" in {
-			false
-		}
-	}
 }
 
 trait bgtest extends Scope {

@@ -135,11 +135,12 @@ class Bigraph(val V : Set[Node],
     }).map(x => x._1).toSet
 
     def apply (m : Match, reactum : Bigraph) : Bigraph = {
-        println("Trying to apply: " + m + " to : " + toNiceString + "\nreplacing: " + reactum.toNiceString)
+        val B = m.toContext
 
-        println("Context: " + m.toContext)
+        val C = B._1
+        val D = B._3
 
-        this
+        C compose reactum compose D
     }
 }
 
