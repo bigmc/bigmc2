@@ -20,7 +20,6 @@ class ReactionRule(val redex : Bigraph, react : Bigraph) {
         val matches = new Matcher(agent,redex)
         val ma = matches.all
         
-        println("ReactionRule apply: " + ma)
         for(m <- ma) yield {
             agent.apply(m,reactum)
         }

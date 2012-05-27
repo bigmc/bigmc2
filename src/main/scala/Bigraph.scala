@@ -163,8 +163,6 @@ class Bigraph(val V : Set[Node],
                 case h : Hole => {
                     val c = m.getParam(h.id)
 
-                    println("Instantiating hole: " + h + " for " + x)
-
                     for(ch <- c) yield {
                         Vmap += ch -> new Node(Node.newId)
                     }
@@ -193,8 +191,6 @@ class Bigraph(val V : Set[Node],
         }).flatten.toMap)
 
 
-        println("Instantiated: Nprnt: " + Nprnt + "\nprntmap: " + prntmap)
-
         new Bigraph(Vmap.values.toSet,E ++ D.E,Nctrl,Nprnt,Nlink,new Face(0,Set()),outer)
     }
 
@@ -205,11 +201,6 @@ class Bigraph(val V : Set[Node],
         val D = B._3
 
         val ireactum = reactum.instantiate(m,D)
-
-        println("C: " + C.toNiceString + " ==> " + C)
-        println("R': " + reactum.toNiceString + " ==> " + reactum)
-        println("eta(R'): " + ireactum.toNiceString + " ==> " + ireactum)
-        println("D: " + D.toNiceString + " ==> " + D)
 
         C compose ireactum
     }

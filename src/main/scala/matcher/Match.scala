@@ -109,8 +109,6 @@ class Match (val B : Bigraph,
             then we need to add the holes to the context.
         */
 
-        println("\n\n\ntoContext: " + this + "\n\n")
-
         val Vi : Set[Place] = Set() ++ B.V
 
         val Vp = Vi -- matchedPlaces
@@ -152,8 +150,6 @@ class Match (val B : Bigraph,
         })
 
         val params = mapping.filter(x => x._1.isHole)
-
-        println("Params: " + params)
 
         val dV = (for(p <- params) yield {
             p._2 match {
