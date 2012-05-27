@@ -286,7 +286,6 @@ class Matcher (B : Bigraph, redex : Bigraph) {
             }
         }
 
- 
         if(kmap.size == 0) {
             return Set()
         }

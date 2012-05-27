@@ -65,7 +65,7 @@ class Bigraph(val V : Set[Node],
                 case _ => a -> b
             }
         }
-        val nprnt = nprnt1 ++ nprnt2
+        var nprnt = nprnt1 ++ nprnt2
         val nlinkf = for((x,y) <- other.link) yield {
             y match {
                 case z : Name => (x,link(z))
@@ -76,7 +76,11 @@ class Bigraph(val V : Set[Node],
         val nlinkg = link.filter (p => p._1 match {
                 case z : Name => false
                 case w => true
-            }) 
+            })
+
+        if(other.V.size == 0 && other.E.size == 0) {
+            nprnt = nprnt.filter(x => !x._1.isHole)
+        }
         
         return new Bigraph(nV,nE,nctrl,nprnt,nlinkf ++ nlinkg,other.inner,outer)
     }
@@ -134,13 +138,60 @@ class Bigraph(val V : Set[Node],
         case _ => false
     }).map(x => x._1).toSet
 
+    def instantiate(m : Match, D : Bigraph) : Bigraph = {
+        var Vmap : Map[Place,Node] = V.map(x => x -> new Node(Node.newId)).toMap
+
+        var Nctrl = ctrl.map(x => Vmap(x._1) -> x._2)
+
+        val (prntmap : Map[Place,Place],inst : Map[Place,Place]) = prnt.map(x => {
+            val lhs = if (Vmap contains (x._1)) Vmap(x._1) else x._1
+            val rhs = if (Vmap contains (x._2)) Vmap(x._2) else x._2
+            lhs -> rhs
+        }).partition(x => !x._1.isHole)
+
+        val Nprnt : Map[Place,Place] = prntmap ++ (inst.map(x => {
+            x._1 match {
+                case h : Hole => {
+                    val c = m.getParam(h.id)
+
+                    println("Instantiating hole: " + h + " for " + x)
+
+                    for(ch <- c) yield {
+                        Vmap += ch -> new Node(Node.newId)
+                    }
+
+                    Nctrl = Nctrl ++ D.ctrl.filter(t => c contains t._1).map(x => Vmap(x._1) -> x._2)
+
+                    D.prnt.filter(d => c contains d._1).map(d => {
+                        d._2 match {
+                            case r : Region => Vmap(d._1) -> x._2
+                            case _ => Vmap(d._1) -> Vmap(d._2)
+                        }
+                    }).toMap
+                }
+                case _ => throw new IllegalArgumentException("Non-hole in left hand side of instantiation")
+            }
+        }).flatten.toMap)
+
+        println("Instantiated: Nprnt: " + Nprnt + "\nprntmap: " + prntmap)
+
+        new Bigraph(Vmap.values.toSet,Set(),Nctrl,Nprnt,Map(),new Face(0,Set()),outer)
+    }
+
     def apply (m : Match, reactum : Bigraph) : Bigraph = {
         val B = m.toContext
 
         val C = B._1
         val D = B._3
 
-        C compose reactum compose D
+        val ireactum = reactum.instantiate(m,D)
+
+        println("C: " + C.toNiceString + " ==> " + C)
+        println("R': " + reactum.toNiceString + " ==> " + reactum)
+        println("eta(R'): " + ireactum.toNiceString + " ==> " + ireactum)
+        println("D: " + D.toNiceString + " ==> " + D)
+
+        C compose ireactum
     }
 }
 

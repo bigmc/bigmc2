@@ -13,4 +13,12 @@ class Node(val id : Int) extends Place {
     }
 }
 
+object Node {
+    var nodeId : Int = 0
+
+    def newId : Int = {	
+        nodeId = nodeId + 1
+        nodeId
+    }
+}
 

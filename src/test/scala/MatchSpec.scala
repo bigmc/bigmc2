@@ -138,6 +138,13 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 1
         }
+        "find 1 occurence of 'send.nil | recv.nil' in 'send.nil | recv.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("send.nil | recv.nil")
+            val b2 = MetaCalcParser.toBigraph("send.nil | recv.nil")
+            val m = new Matcher(b1,b2)
+
+            m.all.size mustEqual 1
+        }
     }
     "Parametric redexes" should {
         "find 1 occurence of 'a.$0' in 'a.nil'" in {
@@ -231,8 +238,13 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 2 
         }
+        "find 1 occurence of 'send.$0 | recv.$1' in 'send.nil | recv.nil'" in {
+            val b1 = MetaCalcParser.toBigraph("send.nil | recv.nil")
+            val b2 = MetaCalcParser.toBigraph("send.$0 | recv.$1")
+            val m = new Matcher(b1,b2)
 
-
+            m.all.size mustEqual 1
+        }
     }
     "Wide redex matching" should {
         "find 1 occurence of 'a.nil || b.nil' in 'a.nil | b.nil'" in {
@@ -436,7 +448,13 @@ class MatchSpecTest extends SpecificationWithJUnit {
 
             m.all.size mustEqual 4
         }
+        "find 1 occurence of 'send[x].$0 | recv[x].$1' in 'send[a].nil | recv[a].nil'" in {
+            val b1 = MetaCalcParser.toBigraph("send[a].nil | recv[a].nil")
+            val b2 = MetaCalcParser.toBigraph("send[x].$0 | recv[x].$0")
+            val m = new Matcher(b1,b2)
 
+            m.all.size mustEqual 1
+        }
     }
 
     "Parameter set" should {

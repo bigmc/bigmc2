@@ -213,8 +213,7 @@ class BigraphTranslator {
         }
         case TZero() => ()
         case TPrefix(c,names,suff) => {
-            val n = new Node(BigraphTranslator.nodeId)
-            BigraphTranslator.nodeId = BigraphTranslator.nodeId + 1
+            val n = new Node(Node.newId)
             nodes += n
             val cn = new Control(c.toString)
             ctrl += n -> cn
@@ -271,10 +270,6 @@ class BigraphTranslator {
         b
     }
     
-}
-
-object BigraphTranslator {
-    var nodeId = 0
 }
 
 object MetaCalcParser extends StandardTokenParsers {
