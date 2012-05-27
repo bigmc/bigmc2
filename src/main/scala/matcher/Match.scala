@@ -89,6 +89,8 @@ class Match (val B : Bigraph,
         case x => Set(x)
     }).flatten
 
+    def matchedLinks : Set[Link] = Set() ++ linkMap.values
+
     def getParam (id : Int) : Set[Place] = mapping.getOrElse(new Hole(id), new Parameter(Set())) match {
         case p : Parameter => p.contents
         case _ => Set()
@@ -106,6 +108,8 @@ class Match (val B : Bigraph,
             everything that was matched to obtain a context,
             then we need to add the holes to the context.
         */
+
+        println("\n\n\ntoContext: " + this + "\n\n")
 
         val Vi : Set[Place] = Set() ++ B.V
 
@@ -139,7 +143,13 @@ class Match (val B : Bigraph,
             case _ => throw new IllegalArgumentException("Malformed node set in toContext")
         })
 
-        val C = new Bigraph(V,Set(),ctrl,prnt,Map(), new Face(redex.outer.width,Set()), B.outer)
+        val Ei : Set[Link] = Set() ++ B.E
+        val Ep = Ei -- matchedLinks
+
+        val E : Set[Edge] = Ep.map(x => x match { 
+            case x : Edge => x
+            case _ => throw new IllegalArgumentException("Malformed edge set in toContext")
+        })
 
         val params = mapping.filter(x => x._1.isHole)
 
@@ -151,6 +161,18 @@ class Match (val B : Bigraph,
                 case x => Set(x)
             }
         }).flatten.toSet
+
+        val Ecd = E.partition(e => !(B.connectedNodes(e) subsetOf dV))
+        
+        val Ec = Ecd._1
+        val Ed = Ecd._2
+
+        val clink = B.link.filter(p => p._2 match {
+            case x : Edge => Ec contains x
+            case x : Name => B.outer.names contains x
+        })
+
+        val C = new Bigraph(V,Ec,ctrl,prnt, clink, redex.outer, B.outer)
 
         val dprnt : Map[Place,Place] = (for(p <- params) yield {
             val hole = p._1 match {
@@ -171,7 +193,12 @@ class Match (val B : Bigraph,
 
         val dctrl = B.ctrl.filter(p => dV contains p._1)
 
-        val D = new Bigraph(dVn,Set(),dctrl,dprnt,Map(),new Face(0,Set()), new Face(params.size,Set()))
+        val dlink = B.link.filter(p => p._2 match {
+            case x : Edge => Ed contains x
+            case x : Name => (redex.inner.names ++ C.inner.names ++ B.outer.names) contains x
+        })
+
+        val D = new Bigraph(dVn,Ed,dctrl,dprnt,dlink,new Face(0,Set()), new Face(params.size,redex.inner.names))
 
         (C,redex,D)
     }

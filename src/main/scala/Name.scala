@@ -2,7 +2,7 @@ package org.bigraph.bigmc
 
 class Name(val id : String) extends Link {
 
-	override def toString = "Name@" + id
+	override def toString = id
 
     override def hashCode = id.hashCode
 

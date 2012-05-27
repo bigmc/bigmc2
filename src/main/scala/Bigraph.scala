@@ -23,12 +23,19 @@ class Bigraph(val V : Set[Node],
             case n : Node => {
                 val c = children(n).toList
 
+                val pa = link.filter(x => x._1 match {
+                    case p : Port => p.node == n
+                    case _ => false
+                }).map(x => x._2.toString).mkString(",")
+                
+                val p = if(pa != "") "[" + pa + "]" else ""
+
                 if(c.size == 0) {
-                    ctrl(n) + ".nil"
+                    ctrl(n) + p + ".nil"
                 } else if(c.size == 1) {
-                    ctrl(n) + "." + toMetaCalcString(c.head)
+                    ctrl(n) + p + "." + toMetaCalcString(c.head)
                 } else {
-                    ctrl(n) + ".(" + c.map(x => toMetaCalcString(x)).mkString(" | ") + ")"
+                    ctrl(n) + p + ".(" + c.map(x => toMetaCalcString(x)).mkString(" | ") + ")"
                 }
             }
             case r : Region => {
@@ -49,7 +56,7 @@ class Bigraph(val V : Set[Node],
         }
 
         if(other.outer.names != inner.names) {
-            throw new IllegalArgumentException("Incompatible names in interface composition")
+            throw new IllegalArgumentException("Incompatible names in interface composition: " + inner + " != " + other.outer)
         }
 
         val nV = V ++ other.V
@@ -68,7 +75,7 @@ class Bigraph(val V : Set[Node],
         var nprnt = nprnt1 ++ nprnt2
         val nlinkf = for((x,y) <- other.link) yield {
             y match {
-                case z : Name => (x,link(z))
+                case z : Name => if(link contains z) (x,link(z)) else (x,z)
                 case z => (x,y)
             }
         }
@@ -149,6 +156,8 @@ class Bigraph(val V : Set[Node],
             lhs -> rhs
         }).partition(x => !x._1.isHole)
 
+        var Nlink = link.map(x => if(m.linkMap contains x._2) x._1 -> m.linkMap(x._2) else x)
+
         val Nprnt : Map[Place,Place] = prntmap ++ (inst.map(x => {
             x._1 match {
                 case h : Hole => {
@@ -162,6 +171,16 @@ class Bigraph(val V : Set[Node],
 
                     Nctrl = Nctrl ++ D.ctrl.filter(t => c contains t._1).map(x => Vmap(x._1) -> x._2)
 
+                    Nlink = Nlink ++ D.link.filter(t => {
+                        t._1 match {
+                            case p : Port => c contains p.node
+                            case _ => true
+                        }
+                    }).map(t => t._1 match {
+                        case p : Port => new Port(Vmap(p.node), p.id) -> t._2
+                        case _ => t
+                    })
+
                     D.prnt.filter(d => c contains d._1).map(d => {
                         d._2 match {
                             case r : Region => Vmap(d._1) -> x._2
@@ -173,9 +192,10 @@ class Bigraph(val V : Set[Node],
             }
         }).flatten.toMap)
 
+
         println("Instantiated: Nprnt: " + Nprnt + "\nprntmap: " + prntmap)
 
-        new Bigraph(Vmap.values.toSet,Set(),Nctrl,Nprnt,Map(),new Face(0,Set()),outer)
+        new Bigraph(Vmap.values.toSet,E ++ D.E,Nctrl,Nprnt,Nlink,new Face(0,Set()),outer)
     }
 
     def apply (m : Match, reactum : Bigraph) : Bigraph = {
@@ -193,6 +213,15 @@ class Bigraph(val V : Set[Node],
 
         C compose ireactum
     }
+
+    def inbound(e : Edge) : Set[Link] = link.filter(x => x._2 == e).values.toSet
+
+    def connectedNodes(e : Edge) : Set[Place] = inbound(e).filter(x => x match {
+        case p : Port => true
+        case _ => false
+    }).map(x => x match {
+        case p : Port => p.node
+    })
 }
 
 

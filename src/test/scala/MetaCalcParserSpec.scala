@@ -157,6 +157,13 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
         "have 2 links in '(νe)(a[e].nil | a[e].nil)'" in {
             MetaCalcParser.toBigraph("(νe)(a[e].nil | a[e].nil)").link.size mustEqual 2
         }
+        "preserve link representations" in {
+            val b = MetaCalcParser.toBigraph("a[x].nil")
+            
+            println("b nice: " + b.toNiceString + " / " + b)
+
+            b.toNiceString mustEqual "a[x].nil"
+        }
     }
     "freeName" should {
         "report 'x,y,z' for 'a[x,y,z].nil'" in {
