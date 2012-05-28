@@ -46,16 +46,32 @@ class VarAssignment(V : Set[Node], vars : List[String]) extends Iterator[Map[Str
 class Sorting(term : LTerm) {
     
     def eval (b : Bigraph, vars : Map[String,Node]) : Boolean = {
-        false
+        println("Evaluating: " + vars)
+        
+        true
     }
 
     def check(b : Bigraph) : Boolean = {
         term match {
             case LPredicate(vars, body) => {
-                val va = new ValAssignment(b.V, vars)
+                val va = new VarAssignment(b.V, vars)
+
+                println("VarAss: " + b.V)
+
+                for(v <- va) {
+                    if(!eval(b,v)) return false
+                }
+
+                return true
             }
             case _ => throw new IllegalArgumentException("Malformed predicate: '" + term + "'")
         }
+    }
+}
+
+object Sorting {
+    def fromString (s : String) : Sorting = {
+        new Sorting(LogicParser.apply(s))
     }
 }
 

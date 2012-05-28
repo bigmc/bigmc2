@@ -53,7 +53,7 @@ sealed abstract class LTerm {
 case class LBinOp(lhs:LTerm, pred: LOper, rhs:LTerm) extends LTerm { }
 case class LIdent(id : String) extends LTerm { }
 case class LPort(lhs:LTerm, id : Int) extends LTerm { }
-case class LPredicate(vars: List[LTerm], body:LTerm) extends LTerm { }
+case class LPredicate(vars: List[String], body:LTerm) extends LTerm { }
 
 
 object LogicParser extends StandardTokenParsers {
@@ -72,7 +72,7 @@ object LogicParser extends StandardTokenParsers {
 
     lazy val impl : Parser[LTerm] = tlexpr ~ ("=>" ~> tlexpr) ^^ { case x ~ y => LBinOp(x,Implies(),y) } | tlexpr
 
-    lazy val nameList : Parser[List[LTerm]] = ident ~ ("," ~> nameList) ^^ { case x ~ y => LIdent(x) :: y } | ident ^^ { x => List(LIdent(x)) }
+    lazy val nameList : Parser[List[String]] = ident ~ ("," ~> nameList) ^^ { case x ~ y => x :: y } | ident ^^ { x => List(x) }
 
     lazy val pred = "∀" ~> ((nameList <~ ":") ~ impl) ^^ { case x ~ y => LPredicate(x,y) } 
 
