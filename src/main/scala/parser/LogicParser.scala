@@ -34,26 +34,27 @@ sealed abstract class LOper {
 
 }
 
-case class ParentOf extends LOper { }
-case class ChildOf extends LOper { }
-case class AncestorOf extends LOper { }
-case class DescendantOf extends LOper { }
-case class NotLinked extends LOper { }
-case class Linked extends LOper { }
-case class NotEqual extends LOper { }
-case class LAnd extends LOper { }
-case class LOr extends LOper { }
-case class CtrlEq extends LOper { }
-case class Implies extends LOper { }
+case class ParentOf extends LOper { override def toString = "↖" }
+case class ChildOf extends LOper { override def toString = "↘" }
+case class AncestorOf extends LOper { override def toString = "⇱" }
+case class DescendantOf extends LOper { override def toString = "⇲" }
+case class NotLinked extends LOper { override def toString = "≁" }
+case class Linked extends LOper { override def toString = "-" }
+case class NotEqual extends LOper { override def toString = "!=" }
+case class Equal extends LOper { override def toString = "=" }
+case class LAnd extends LOper { override def toString = "∧" }
+case class LOr extends LOper { override def toString = "∨" }
+case class CtrlEq extends LOper { override def toString = "has-ctrl" }
+case class Implies extends LOper { override def toString = "=>" }
 
 sealed abstract class LTerm {
 
 }
 
-case class LBinOp(lhs:LTerm, pred: LOper, rhs:LTerm) extends LTerm { }
-case class LIdent(id : String) extends LTerm { }
-case class LPort(lhs:LTerm, id : Int) extends LTerm { }
-case class LPredicate(vars: List[String], body:LTerm) extends LTerm { }
+case class LBinOp(lhs:LTerm, pred: LOper, rhs:LTerm) extends LTerm { override def toString = "(" + lhs + " " + pred + " " + rhs + ")" }
+case class LIdent(id : String) extends LTerm { override def toString = id }
+case class LPort(lhs:LTerm, id : Int) extends LTerm { override def toString = lhs + "[" + id + "]" }
+case class LPredicate(vars: List[String], body:LTerm) extends LTerm { override def toString = "∀" + vars.mkString(",") + " : " + body }
 
 
 object LogicParser extends StandardTokenParsers {
@@ -64,7 +65,7 @@ object LogicParser extends StandardTokenParsers {
 
     lazy val term = ctrl | (ident ~ ("[" ~> numericLit <~ "]")) ^^ { case x ~ y => LPort(LIdent(x),y.toInt) } | ident ^^ { x => LIdent(x) } 
 
-    lazy val binop = "↖" ^^^ {ParentOf()} | "↘" ^^^ {ChildOf()} | "⇱" ^^^ {AncestorOf()} | "⇲" ^^^ {DescendantOf()} | "≁" ^^^ {NotLinked()} | "!=" ^^^ {NotEqual()} | "-" ^^^ {Linked()}
+    lazy val binop = "↖" ^^^ {ParentOf()} | "↘" ^^^ {ChildOf()} | "⇱" ^^^ {AncestorOf()} | "⇲" ^^^ {DescendantOf()} | "≁" ^^^ {NotLinked()} | "!=" ^^^ {NotEqual()} | "-" ^^^ {Linked()} | "=" ^^^ {Equal()}
 
     lazy val expr : Parser[LTerm] = term ~ (binop ~ expr) ^^ { case x ~ (y ~ z) => LBinOp(x,y,z) } | term | "(" ~> expr <~ ")"
 
