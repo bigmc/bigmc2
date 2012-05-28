@@ -37,6 +37,7 @@ u ::= x parent-of y
   ::= u \/ u
   ::= u /\ u
   ::= ctrl(x) = y
+  ::= ctrl(x) != y
 
 */
 

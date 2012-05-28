@@ -11,15 +11,22 @@ import org.bigraph.bigmc.parser._
 import scala.collection.immutable.Map
 import scala.collection.immutable.Set
 
-//List("(",")","↖", "↘", "⇱","⇲","≁","∧","∨","∀",":","," )
+//List("(",")","↖", "↘", "⇱","⇲","≁","∧","∨","∀",":",",","-" )
 
 @RunWith(classOf[JUnitRunner])
 class LogicParserSpecTest extends SpecificationWithJUnit {
 
-	"The LogicParser" should {
-		"parse '∀x,y : x ↘ y ∨ y ↘ x'" in {
-		    LogicParser.test("∀x,y : x ↘ y ∨ y ↘ x")
+    "The LogicParser" should {
+        "parse '∀x,y : x ↘ y ∨ y ↘ x'" in {
+            LogicParser.test("∀x,y : x ↘ y ∨ y ↘ x")
         }
+        "parse '∀x,y : (x ↘ y) ∨ (y ↘ x)'" in {
+            LogicParser.test("∀x,y : (x ↘ y) ∨ (y ↘ x)")
+        }
+        "parse '∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y'" in {
+            LogicParser.test("∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y")
+        }
+
     }
 }
 

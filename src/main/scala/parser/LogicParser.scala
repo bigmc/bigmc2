@@ -23,7 +23,9 @@ u ::= x parent-of y
   ::= u \/ u
   ::= u /\ u
   ::= ctrl(x) = y
+  ::= ctrl(x) != y
   ::= ( u )
+  ::= u => u
 
 */
 
@@ -37,10 +39,12 @@ case class ChildOf extends LOper { }
 case class AncestorOf extends LOper { }
 case class DescendantOf extends LOper { }
 case class NotLinked extends LOper { }
+case class Linked extends LOper { }
 case class NotEqual extends LOper { }
 case class LAnd extends LOper { }
 case class LOr extends LOper { }
 case class CtrlEq extends LOper { }
+case class Implies extends LOper { }
 
 sealed abstract class LTerm {
 
@@ -53,22 +57,24 @@ case class LPredicate(vars: List[LTerm], body:LTerm) extends LTerm { }
 
 
 object LogicParser extends StandardTokenParsers {
-    lexical.delimiters ++= List("(",")","↖", "↘", "⇱","⇲","≁","∧","∨","∀",":",",","[","]" )
+    lexical.delimiters ++= List("(",")","↖", "↘", "⇱","⇲","≁","∧","∨","∀",":",",","[","]","!=","=>","=","-" )
     lexical.reserved ++= List("ctrl")
 
     lazy val ctrl = "ctrl" ~> ("(" ~> ident <~ ")") ~ ("=" ~> ident) ^^ { case x ~ y => LBinOp(LIdent(x),CtrlEq(),LIdent(y)) }
 
     lazy val term = ctrl | (ident ~ ("[" ~> numericLit <~ "]")) ^^ { case x ~ y => LPort(LIdent(x),y.toInt) } | ident ^^ { x => LIdent(x) } 
 
-    lazy val binop = "↖" ^^^ {ParentOf()} | "↘" ^^^ {ChildOf()} | "⇱" ^^^ {AncestorOf()} | "⇲" ^^^ {DescendantOf()} | "≁" ^^^ {NotLinked()}
+    lazy val binop = "↖" ^^^ {ParentOf()} | "↘" ^^^ {ChildOf()} | "⇱" ^^^ {AncestorOf()} | "⇲" ^^^ {DescendantOf()} | "≁" ^^^ {NotLinked()} | "!=" ^^^ {NotEqual()} | "-" ^^^ {Linked()}
 
-    lazy val expr : Parser[LTerm] = term ~ (binop ~ expr) ^^ { case x ~ (y ~ z) => LBinOp(x,y,z) } | term
+    lazy val expr : Parser[LTerm] = term ~ (binop ~ expr) ^^ { case x ~ (y ~ z) => LBinOp(x,y,z) } | term | "(" ~> expr <~ ")"
 
     lazy val tlexpr : Parser[LTerm] = expr ~ ("∧" ~> tlexpr) ^^ { case x ~ y => LBinOp(x,LAnd(),y) } | expr ~ ("∨" ~> tlexpr) ^^ { case x ~ y => LBinOp(x,LOr(),y) } | "(" ~> tlexpr <~ ")" | expr
 
+    lazy val impl : Parser[LTerm] = tlexpr ~ ("=>" ~> tlexpr) ^^ { case x ~ y => LBinOp(x,Implies(),y) } | tlexpr
+
     lazy val nameList : Parser[List[LTerm]] = ident ~ ("," ~> nameList) ^^ { case x ~ y => LIdent(x) :: y } | ident ^^ { x => List(LIdent(x)) }
 
-    lazy val pred = "∀" ~> ((nameList <~ ":") ~ tlexpr) ^^ { case x ~ y => LPredicate(x,y) } 
+    lazy val pred = "∀" ~> ((nameList <~ ":") ~ impl) ^^ { case x ~ y => LPredicate(x,y) } 
 
     def parse(s:String) = {
         val tokens = new lexical.Scanner(s)
