@@ -38,8 +38,8 @@ case class ParentOf extends LOper { override def toString = "↖" }
 case class ChildOf extends LOper { override def toString = "↘" }
 case class AncestorOf extends LOper { override def toString = "⇱" }
 case class DescendantOf extends LOper { override def toString = "⇲" }
-case class NotLinked extends LOper { override def toString = "≁" }
-case class Linked extends LOper { override def toString = "-" }
+case class NotLinked extends LOper { override def toString = "-/-" }
+case class Linked extends LOper { override def toString = "--" }
 case class NotEqual extends LOper { override def toString = "!=" }
 case class Equal extends LOper { override def toString = "=" }
 case class LAnd extends LOper { override def toString = "∧" }
@@ -58,14 +58,14 @@ case class LPredicate(vars: List[String], body:LTerm) extends LTerm { override d
 
 
 object LogicParser extends StandardTokenParsers {
-    lexical.delimiters ++= List("(",")","↖", "↘", "⇱","⇲","≁","∧","∨","∀",":",",","[","]","!=","=>","=","-" )
+    lexical.delimiters ++= List("(",")","↖", "↘", "⇱","⇲","-/-","∧","∨","∀",":",",","[","]","!=","=>","=","--" )
     lexical.reserved ++= List("ctrl")
 
     lazy val ctrl = "ctrl" ~> ("(" ~> ident <~ ")") ~ ("=" ~> ident) ^^ { case x ~ y => LBinOp(LIdent(x),CtrlEq(),LIdent(y)) }
 
     lazy val term = ctrl | (ident ~ ("[" ~> numericLit <~ "]")) ^^ { case x ~ y => LPort(LIdent(x),y.toInt) } | ident ^^ { x => LIdent(x) } 
 
-    lazy val binop = "↖" ^^^ {ParentOf()} | "↘" ^^^ {ChildOf()} | "⇱" ^^^ {AncestorOf()} | "⇲" ^^^ {DescendantOf()} | "≁" ^^^ {NotLinked()} | "!=" ^^^ {NotEqual()} | "-" ^^^ {Linked()} | "=" ^^^ {Equal()}
+    lazy val binop = "↖" ^^^ {ParentOf()} | "↘" ^^^ {ChildOf()} | "⇱" ^^^ {AncestorOf()} | "⇲" ^^^ {DescendantOf()} | "-/-" ^^^ {NotLinked()} | "!=" ^^^ {NotEqual()} | "--" ^^^ {Linked()} | "=" ^^^ {Equal()}
 
     lazy val expr : Parser[LTerm] = term ~ (binop ~ expr) ^^ { case x ~ (y ~ z) => LBinOp(x,y,z) } | term | "(" ~> expr <~ ")"
 

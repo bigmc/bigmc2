@@ -26,14 +26,14 @@ class SortingSpecTest extends SpecificationWithJUnit {
             !Sorting.fromString("∀x,y : x != y => x ↘ y ∨ y ↘ x").check(b)
         }
     }
-    "The sorting '∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y'" should {
+    "The sorting '∀x,y : (ctrl(x) = recv ∧ x[1] -- y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y'" should {
         "find 'recv[q,r].send[r,s].nil' well-sorted" in {
-            val s = "∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y"
+            val s = "∀x,y : (ctrl(x) = recv ∧ x[1] -- y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y"
             val b = MetaCalcParser.toBigraph("recv[q,r].send[r,s].nil")
             Sorting.fromString(s).check(b)
         }
         "find 'recv[q,r].nil | send[r,s].nil' not well-sorted" in {
-            val s = "∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y"
+            val s = "∀x,y : (ctrl(x) = recv ∧ x[1] -- y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y"
             val b = MetaCalcParser.toBigraph("recv[q,r].nil | send[r,s].nil")
             !Sorting.fromString(s).check(b)
         }

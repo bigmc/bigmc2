@@ -23,8 +23,8 @@ class LogicParserSpecTest extends SpecificationWithJUnit {
         "parse '∀x,y : (x ↘ y) ∨ (y ↘ x)'" in {
             LogicParser.test("∀x,y : (x ↘ y) ∨ (y ↘ x)")
         }
-        "parse '∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y'" in {
-            LogicParser.test("∀x,y : (ctrl(x) = recv ∧ x[1] - y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y")
+        "parse '∀x,y : (ctrl(x) = recv ∧ x[1] -- y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y'" in {
+            LogicParser.test("∀x,y : (ctrl(x) = recv ∧ x[1] -- y[0] ∧ (ctrl(y) = recv ∨ ctrl(y) = send)) => x ⇲ y")
         }
 
     }
