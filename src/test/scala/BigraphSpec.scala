@@ -105,12 +105,19 @@ class BigraphSpecTest extends SpecificationWithJUnit {
 
             a != b
         }
-        "find 'b || a' == 'a || b'" in {
+        "find 'b || a' != 'a || b'" in {
             val a = MetaCalcParser.toBigraph("b || a")
+            val b = MetaCalcParser.toBigraph("a || b")
+
+            a != b
+        }
+         "find 'a || b' == 'a || b'" in {
+            val a = MetaCalcParser.toBigraph("a || b")
             val b = MetaCalcParser.toBigraph("a || b")
 
             a == b
         }
+
         "find 'a.(b.c | d.e)' == 'a.(d.e | b.c)'" in {
             val a = MetaCalcParser.toBigraph("a.(b.c | d.e)")
             val b = MetaCalcParser.toBigraph("a.(d.e | b.c)")
@@ -129,13 +136,31 @@ class BigraphSpecTest extends SpecificationWithJUnit {
 
             a == b
         }
-        "find '(νe) a[e]' != '(νf) a[f]'" in {
+        "find '(νe) a[e]' == '(νf) a[f]'" in {
             val a = MetaCalcParser.toBigraph("(νe) a[e]")
             val b = MetaCalcParser.toBigraph("(νf) a[f]")
 
+            a == b
+        }
+        "find '(νe)(νf) a[e]' == '(νf)(νe) a[f]'" in {
+            val a = MetaCalcParser.toBigraph("(νe)(νf) a[e]")
+            val b = MetaCalcParser.toBigraph("(νf)(νe) a[f]")
+
+            a == b
+        }
+        "find '(νe)(νf) a[e].b[f]' == '(νf)(νe) a[f].b[e]'" in {
+            val a = MetaCalcParser.toBigraph("(νe)(νf) a[e].b[f]")
+            val b = MetaCalcParser.toBigraph("(νf)(νe) a[f].b[e]")
+
+            a == b
+        }
+        "find '(νe)(νf) a[e].b[e]' != '(νf)(νe) a[f].b[e]'" in {
+            val a = MetaCalcParser.toBigraph("(νe)(νf) a[e].b[e]")
+            val b = MetaCalcParser.toBigraph("(νf)(νe) a[f].b[e]")
+
             a != b
         }
-        
+
         "find 'a[e] || [x |-> e]' == 'a[e] || [x |-> e]'" in {
             val a = MetaCalcParser.toBigraph("a[e] || [x |-> e]")
             val b = MetaCalcParser.toBigraph("a[e] || [x |-> e]")

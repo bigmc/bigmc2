@@ -100,7 +100,6 @@ class Sorting(term : LTerm) {
             case LBinOp(lhs,Implies(),rhs) => !(eval(lhs,b,env)) || eval(rhs,b,env)
             case _ => throw new IllegalArgumentException("Malformed sorting term: " + term + " near: " + t)
         }
-        println("Eval: " + t + " on: " + env + " res: " + r)
         r
     }
 

@@ -14,5 +14,7 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.7"
 )
 
+parallelExecution in Test := false
+
 testOptions := Seq(Tests.Filter(s => Seq("Spec", "Unit", "Test").exists(s.endsWith(_))))
 

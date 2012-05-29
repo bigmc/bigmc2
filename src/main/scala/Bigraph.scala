@@ -220,23 +220,57 @@ class Bigraph(val V : Set[Node],
             // Start by checking a few quick-to-verify properties
             if(that.V.size != V.size) return false
             if(that.E.size != E.size) return false
-            //if(that.inner != inner && that.outer != outer) return false
+            if(that.link.size != link.size) return false
+            if(that.inner.names != inner.names || that.outer.names != outer.names) return false
             if(that.prnt.size != prnt.size) return false
 
             val v = V.toList
             val p = that.V.toList.permutations
 
+            println("Comparing: " + toNiceString + " with " + that.toNiceString)
+            println("This: " + this)
+            println("That: " + that)
+
             p.exists(u => {
-                println("u: " + u)
                 // Construct a potential bijection
                 val X : Map[Place,Node] = (for(x <- List.range(0,v.size)) yield {
                     v(x) -> u(x)
                 }).toMap
 
+                println("Trying bijection: " + X)
+
                 v.forall(x => {
-                    if(that.prnt(X(x)).isRegion && prnt(x).isRegion) true
-                    else if (that.prnt(X(x)).isRegion || prnt(x).isRegion) false
-                    else ctrl(x) == that.ctrl(X(x)) && that.prnt(X(x)) == X(prnt(x))
+                    val q = that.prnt(X(x)).isRegion && prnt(x).isRegion && that.prnt(X(x)) == prnt(x) 
+                    
+                    if (!q && (that.prnt(X(x)).isRegion || prnt(x).isRegion)) {
+                        println("Early return Bijection: " + q + " " + x + " --> " + X(x))
+                        false
+                    } else if(!(ctrl(x) == that.ctrl(X(x)) && (q || that.prnt(X(x)) == X(prnt(x))))) false
+                    else {
+
+                        // Try to find a bijection on edges
+                        val e = link.values.toList 
+                        val fp = that.link.values.toList.permutations
+
+                        link.size == 0 || (fp.exists(f => {
+                            val Y : Map[Link,Link] = (for(x <- List.range(0,f.size)) yield {
+                                e(x) -> f(x)
+                            }).toMap
+
+                            println("Edge bijection: " + Y)
+
+                            link.forall(x => {
+                                val l = x._1 match {
+                                    case p : Port => new Port(X(p.node),p.id)
+                                    case n => n
+                                }
+                                x._2 match {
+                                    case n : Name => that.link(l) == n 
+                                    case g : Edge => that.link(l) == Y(g) 
+                                }
+                            })
+                        }))
+                    }
                 })
             })
         }
