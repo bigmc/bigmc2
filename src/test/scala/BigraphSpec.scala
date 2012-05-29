@@ -174,6 +174,70 @@ class BigraphSpecTest extends SpecificationWithJUnit {
             a != b
         }
     }
+
+    "Bigraph hashCode" should {
+        "find 'a.nil' == 'a.nil'" in {
+            val a = MetaCalcParser.toBigraph("a.nil").hashCode
+            val b = MetaCalcParser.toBigraph("a.nil").hashCode
+
+            a == b
+        }
+        "find 'a.b.nil' == 'a.b.nil'" in {
+            val a = MetaCalcParser.toBigraph("a.b.nil").hashCode
+            val b = MetaCalcParser.toBigraph("a.b.nil").hashCode
+
+            a == b
+        }
+        "find 'a.(b | c)' == 'a.(b | c).nil'" in {
+            val a = MetaCalcParser.toBigraph("a.(b | c)").hashCode
+            val b = MetaCalcParser.toBigraph("a.(b | c)").hashCode
+
+            a == b
+        }
+         "find 'a || b' == 'a || b'" in {
+            val a = MetaCalcParser.toBigraph("a || b").hashCode
+            val b = MetaCalcParser.toBigraph("a || b").hashCode
+
+            a == b
+        }
+
+        "find 'a.(b.c | d.e)' == 'a.(d.e | b.c)'" in {
+            val a = MetaCalcParser.toBigraph("a.(b.c | d.e)").hashCode
+            val b = MetaCalcParser.toBigraph("a.(d.e | b.c)").hashCode
+
+            a == b
+        }
+        "find '(νe) a[e]' == '(νe) a[e]'" in {
+            val a = MetaCalcParser.toBigraph("(νe) a[e]").hashCode
+            val b = MetaCalcParser.toBigraph("(νe) a[e]").hashCode
+
+            a == b
+        }
+        "find '(νe) a[e]' == '(νf) a[f]'" in {
+            val a = MetaCalcParser.toBigraph("(νe) a[e]").hashCode
+            val b = MetaCalcParser.toBigraph("(νf) a[f]").hashCode
+
+            a == b
+        }
+        "find '(νe)(νf) a[e]' == '(νf)(νe) a[f]'" in {
+            val a = MetaCalcParser.toBigraph("(νe)(νf) a[e]").hashCode
+            val b = MetaCalcParser.toBigraph("(νf)(νe) a[f]").hashCode
+
+            a == b
+        }
+        "find '(νe)(νf) a[e].b[f]' == '(νf)(νe) a[f].b[e]'" in {
+            val a = MetaCalcParser.toBigraph("(νe)(νf) a[e].b[f]").hashCode
+            val b = MetaCalcParser.toBigraph("(νf)(νe) a[f].b[e]").hashCode
+
+            a == b
+        }
+        "find 'a[e] || [x |-> e]' == 'a[e] || [x |-> e]'" in {
+            val a = MetaCalcParser.toBigraph("a[e] || [x |-> e]").hashCode
+            val b = MetaCalcParser.toBigraph("a[e] || [x |-> e]").hashCode
+
+            a == b
+        }
+    }
 }
 
 trait bgtest extends Scope {

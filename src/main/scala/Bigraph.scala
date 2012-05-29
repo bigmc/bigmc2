@@ -47,8 +47,12 @@ class Bigraph(val V : Set[Node],
     }
 
     def toNiceString : String = {
-        regions.map(toMetaCalcString).mkString(" || ")
+        val e = E.map(x => "(ν"+x+")").mkString("")
+        e + regions.map(toMetaCalcString).mkString(" || ")
     }
+
+    // XXX: This is a hack and probably wrong.
+    override def hashCode = inner.hashCode * 41 + (outer.hashCode * 23) 
 
     def compose(other : Bigraph) : Bigraph = {
         if(other.outer.width != inner.width) {
@@ -227,23 +231,16 @@ class Bigraph(val V : Set[Node],
             val v = V.toList
             val p = that.V.toList.permutations
 
-            println("Comparing: " + toNiceString + " with " + that.toNiceString)
-            println("This: " + this)
-            println("That: " + that)
-
             p.exists(u => {
                 // Construct a potential bijection
                 val X : Map[Place,Node] = (for(x <- List.range(0,v.size)) yield {
                     v(x) -> u(x)
                 }).toMap
 
-                println("Trying bijection: " + X)
-
                 v.forall(x => {
                     val q = that.prnt(X(x)).isRegion && prnt(x).isRegion && that.prnt(X(x)) == prnt(x) 
                     
                     if (!q && (that.prnt(X(x)).isRegion || prnt(x).isRegion)) {
-                        println("Early return Bijection: " + q + " " + x + " --> " + X(x))
                         false
                     } else if(!(ctrl(x) == that.ctrl(X(x)) && (q || that.prnt(X(x)) == X(prnt(x))))) false
                     else {
@@ -256,8 +253,6 @@ class Bigraph(val V : Set[Node],
                             val Y : Map[Link,Link] = (for(x <- List.range(0,f.size)) yield {
                                 e(x) -> f(x)
                             }).toMap
-
-                            println("Edge bijection: " + Y)
 
                             link.forall(x => {
                                 val l = x._1 match {

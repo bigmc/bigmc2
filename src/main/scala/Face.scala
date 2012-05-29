@@ -6,6 +6,8 @@ class Face(val width : Int, val names : Set[Name]) extends Link {
         case _ => false
     }
 
+    override def hashCode = (width + 29) * 41 + (61 * (13 + names.map(_.hashCode).sum))
+
 	override def toString = "〈" + width + ", {" + names.mkString(",") + "}〉"
 }
 

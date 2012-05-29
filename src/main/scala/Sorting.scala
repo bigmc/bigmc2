@@ -108,8 +108,6 @@ class Sorting(term : LTerm) {
             case LPredicate(vars, body) => {
                 val va = new VarAssignment(b.V, vars)
 
-                println("VarAss: " + b.V + " for " + term)
-
                 for(v <- va) {
                     if(!eval(body,b,v)) return false
                 }
