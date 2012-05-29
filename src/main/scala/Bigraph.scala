@@ -213,6 +213,36 @@ class Bigraph(val V : Set[Node],
     }).map(x => x match {
         case p : Port => p.node
     })
+
+    /** This is equality up to support equivalence. **/
+    override def equals(other : Any) : Boolean = other match {
+        case that : Bigraph => {
+            // Start by checking a few quick-to-verify properties
+            if(that.V.size != V.size) return false
+            if(that.E.size != E.size) return false
+            //if(that.inner != inner && that.outer != outer) return false
+            if(that.prnt.size != prnt.size) return false
+
+            val v = V.toList
+            val p = that.V.toList.permutations
+
+            p.exists(u => {
+                println("u: " + u)
+                // Construct a potential bijection
+                val X : Map[Place,Node] = (for(x <- List.range(0,v.size)) yield {
+                    v(x) -> u(x)
+                }).toMap
+
+                v.forall(x => {
+                    if(that.prnt(X(x)).isRegion && prnt(x).isRegion) true
+                    else if (that.prnt(X(x)).isRegion || prnt(x).isRegion) false
+                    else ctrl(x) == that.ctrl(X(x)) && that.prnt(X(x)) == X(prnt(x))
+                })
+            })
+        }
+        case _ => false
+    }
+
 }
 
 
