@@ -193,7 +193,7 @@ case class THole(index:Int) extends Term {
     def substitute(x: Ident, y: Ident) = this
 }
 
-class BigraphTranslator {
+class BigraphTranslator(activity : Set[String]) {
     var nodes : Set[Node] = Set()
     var edges : Set[Edge] = Set()
     var ctrl : Map[Node,Control] = Map()
@@ -216,7 +216,7 @@ class BigraphTranslator {
         case TPrefix(c,names,suff) => {
             val n = new Node(Node.newId)
             nodes += n
-            val cn = new Control(c.toString)
+            val cn = new Control(c.toString, active = activity contains c.toString )
             ctrl += n -> cn
             prnt += n -> parent
 
@@ -333,9 +333,9 @@ object MetaCalcParser extends StandardTokenParsers {
         }
     }
 
-    def toBigraph(s:String) : Bigraph = {
+    def toBigraph(s:String, activity : Set[String] = Set()) : Bigraph = {
         val t = apply(s)
-        val b = new BigraphTranslator()
+        val b = new BigraphTranslator(activity)
         b.toBigraph(t)
     }
 }

@@ -15,7 +15,7 @@ class Bigraph(val V : Set[Node],
               val outer : Face
               ) {
 
-    override def toString = "({"+V.mkString(",")+"},{"+E.mkString(",")+"},{"+ctrl.mkString(",")+"},{"+prnt.mkString(",")+"},{"+link.mkString(",")+"}) : "+inner+" → " + outer 
+    //override def toString = "({"+V.mkString(",")+"},{"+E.mkString(",")+"},{"+ctrl.mkString(",")+"},{"+prnt.mkString(",")+"},{"+link.mkString(",")+"}) : "+inner+" → " + outer 
 
     def toMetaCalcString(p : Place) : String = {
         p match {
@@ -39,9 +39,11 @@ class Bigraph(val V : Set[Node],
                 }
             }
             case r : Region => {
-                 val c = children(r).toList
+                val c = children(r).toList
 
-                 c.map(x => toMetaCalcString(x)).mkString(" | ") 
+                if(c.size == 0) "nil"
+                else
+                    c.map(x => toMetaCalcString(x)).mkString(" | ") 
             }
         }
     }
@@ -50,6 +52,8 @@ class Bigraph(val V : Set[Node],
         val e = E.map(x => "(ν"+x+")").mkString("")
         e + regions.map(toMetaCalcString).mkString(" || ")
     }
+
+    override def toString = toNiceString
 
     // XXX: This is a hack and probably wrong.
     override def hashCode = inner.hashCode * 41 + (outer.hashCode * 23) 
@@ -198,12 +202,7 @@ class Bigraph(val V : Set[Node],
         new Bigraph(Vmap.values.toSet,E ++ D.E,Nctrl,Nprnt,Nlink,new Face(0,Set()),outer)
     }
 
-    def apply (m : Match, reactum : Bigraph) : Bigraph = {
-        val B = m.toContext
-
-        val C = B._1
-        val D = B._3
-
+    def apply (m : Match, C : Bigraph, reactum : Bigraph, D : Bigraph) : Bigraph = {
         val ireactum = reactum.instantiate(m,D)
 
         C compose ireactum
@@ -270,6 +269,20 @@ class Bigraph(val V : Set[Node],
             })
         }
         case _ => false
+    }
+
+    def isActiveContext : Boolean = {
+        
+        def act(n : Place) : Boolean = n match {
+            case r : Region => true
+            case n : Node => ctrl(n).active && act(prnt(n))
+            case h : Hole => act(prnt(h))
+        }
+
+        prnt.forall(x => x._1 match {
+            case h : Hole => act(h)
+            case n : Node => true
+        })
     }
 
 }

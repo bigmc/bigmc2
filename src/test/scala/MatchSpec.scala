@@ -275,7 +275,7 @@ class MatchSpecTest extends SpecificationWithJUnit {
             val m = new Matcher(b1,b2)
             m.all.size mustEqual 2
         }
-        "find 4 occurences of 'a.$0 || b.$1' in 'a.a.nil | a.a.nil'" in {
+        "find 4 occurences of 'a.$0 || a.$1' in 'a.a.nil | a.a.nil'" in {
             val b1 = MetaCalcParser.toBigraph("a.a.nil | a.a.nil")
             val b2 = MetaCalcParser.toBigraph("a.$0 || a.$1")
             val m = new Matcher(b1,b2)

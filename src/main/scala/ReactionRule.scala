@@ -20,9 +20,16 @@ class ReactionRule(val redex : Bigraph, react : Bigraph) {
         val matches = new Matcher(agent,redex)
         val ma = matches.all
         
-        for(m <- ma) yield {
-            agent.apply(m,reactum)
-        }
+        ma.map(m => {
+            val B = m.toContext
+    
+            val C = B._1
+            val D = B._3
+
+            if(C.isActiveContext)
+                Some(agent.apply(m,C,reactum,D))
+            else None
+        }).filter(x => !x.isEmpty).map(_.get)
     }
 }
 

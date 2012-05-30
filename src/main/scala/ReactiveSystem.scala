@@ -2,12 +2,52 @@ package org.bigraph.bigmc
 
 import org.bigraph.bigmc.matcher._
 
-import scala.collection.immutable.Set
+import scalax.collection.mutable.Graph
+import scalax.collection.GraphPredef._, scalax.collection.GraphEdge._
+import scalax.collection.edge.LDiEdge
+import scalax.collection.edge.Implicits._
 
-class ReactiveSystem(signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting) {
-    def step(start : Bigraph) : Set[Bigraph] = {
-        
-        Set()
+import scala.collection.immutable.Set
+import scala.collection.immutable.List
+
+class ReactiveSystem(agent : Bigraph, signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting) {
+    val reactionGraph : Graph[Bigraph,LDiEdge] = Graph()
+
+    var done = false
+
+    var workQueue : List[Bigraph] = List(agent)
+
+    def isComplete = done
+
+    def step() : Unit = {
+        if(workQueue.size == 0) {
+            done = true
+            return ()
+        }
+
+        val w = workQueue.head
+
+        workQueue = workQueue.tail
+
+        for(r <- rules) yield {
+            val cand = r.apply(w).filter(c => sorting == null || sorting.check(c))
+
+            cand.foreach(c => {
+                if(!(workQueue contains c)) {
+                    workQueue = workQueue :+ c
+                }
+
+                reactionGraph += (w ~+> c)(r)
+            })
+        }
+
+        ()
+    }
+
+    def behave() : Unit = {
+        while(!done) {
+            step()
+        }
     }
 }
 
