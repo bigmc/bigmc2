@@ -10,7 +10,13 @@ import scalax.collection.edge.Implicits._
 import scala.collection.immutable.Set
 import scala.collection.immutable.List
 
-class ReactiveSystem(agent : Bigraph, signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting) {
+trait ExecutionStrategy {
+    def step() : Unit
+    var done : Boolean
+    def report() : String
+}
+
+class BigraphicalReactiveSystem(agent : Bigraph, signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting) extends ExecutionStrategy {
     val reactionGraph : Graph[Bigraph,LDiEdge] = Graph()
 
     var done = false
@@ -49,8 +55,55 @@ class ReactiveSystem(agent : Bigraph, signature : Set[Control], rules : Set[Reac
             step()
         }
     }
+
+    def report() : String = {
+        "[WQ: " + workQueue.size + "]"
+    }
 }
 
+class StochasticReactiveSystem(agent : Bigraph, signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting) extends ExecutionStrategy {
+    val reactionGraph : Graph[Bigraph,LDiEdge] = Graph()
 
+    var done = false
+
+    var workQueue : List[Bigraph] = List(agent)
+
+    def isComplete = done
+
+    def step() : Unit = {
+        if(workQueue.size == 0) {
+            done = true
+            return ()
+        }
+
+        val w = workQueue.head
+
+        workQueue = workQueue.tail
+
+        for(r <- rules) yield {
+            val cand = r.apply(w).filter(c => sorting == null || sorting.check(c))
+
+            cand.foreach(c => {
+                if(!(workQueue contains c)) {
+                    workQueue = workQueue :+ c
+                }
+
+                reactionGraph += (w ~+> c)(r)
+            })
+        }
+
+        ()
+    }
+
+    def behave() : Unit = {
+        while(!done) {
+            step()
+        }
+    }
+
+    def report() : String = {
+        "[WQ: " + workQueue.size + "]"
+    }
+}
 
 

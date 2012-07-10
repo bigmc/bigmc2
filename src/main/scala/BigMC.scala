@@ -9,6 +9,7 @@ object BigMCOpts {
     var reportFrequency : Int = 500
     var verbose : Boolean = false
     var filename : String = ""
+    var stochastic : Boolean = false
 }
 
 object BigMC extends App {
@@ -18,10 +19,11 @@ Usage: bigmc2 [options] <filename>
   Options:
     -G file     Output the reaction graph to a dot file.
     -h --help   Display this help and exit.
+    -l          Local check mode - do not build the reaction graph.
     -m x        Specify x maximum steps of graph unfolding (default: 1000)
     -p          Print new states as they are discovered.
-    -l          Local check mode - do not build the reaction graph.
     -r x        Output statistics and graphs every x steps (default: 500)
+    -S          Enable stochastic simulation
     -v          Print version information and exit.
     -V          Print verbose output while running.""")
 
@@ -50,6 +52,10 @@ Usage: bigmc2 [options] <filename>
         }
         case ("-r"::x::t) => {
             BigMCOpts.reportFrequency = x.toInt
+            parseOpts(t)
+        }
+        case ("-S"::t) => {
+            BigMCOpts.stochastic = true
             parseOpts(t)
         }
         case ("-v"::t) => {

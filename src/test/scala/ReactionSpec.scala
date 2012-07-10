@@ -127,7 +127,7 @@ class ReactionSpecTest extends SpecificationWithJUnit {
             val r = MetaCalcParser.toBigraph("a.$0")
             val rp = MetaCalcParser.toBigraph("$0")
             val rr = new ReactionRule(r,rp)
-            val rs = new ReactiveSystem(a,Set(),Set(rr),null)
+            val rs = new BigraphicalReactiveSystem(a,Set(),Set(rr),null)
 
             rs.behave()
 
@@ -140,7 +140,7 @@ class ReactionSpecTest extends SpecificationWithJUnit {
             val r = MetaCalcParser.toBigraph("a.b.$0")
             val rp = MetaCalcParser.toBigraph("$0")
             val rr = new ReactionRule(r,rp)
-            val rs = new ReactiveSystem(a,Set(),Set(rr),null)
+            val rs = new BigraphicalReactiveSystem(a,Set(),Set(rr),null)
 
             rs.behave()
 
@@ -153,7 +153,7 @@ class ReactionSpecTest extends SpecificationWithJUnit {
             val r = MetaCalcParser.toBigraph("a.b.$0")
             val rp = MetaCalcParser.toBigraph("$0")
             val rr = new ReactionRule(r,rp)
-            val rs = new ReactiveSystem(a,Set(),Set(rr),null)
+            val rs = new BigraphicalReactiveSystem(a,Set(),Set(rr),null)
 
             rs.behave()
 
