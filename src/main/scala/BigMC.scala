@@ -1,6 +1,10 @@
 
 package org.bigraph.bigmc
 
+import org.bigraph.bigmc.parser.BGMParser
+
+import java.io.File
+
 object BigMCOpts {
     var graphOutput : String = ""
     var maxSteps : Int = 1000
@@ -80,6 +84,8 @@ Usage: bigmc2 [options] <filename>
             System.exit(1)
         } else {
             parseOpts(args.toList)
+	    val p = BGMParser.parse(new File(BigMCOpts.filename))
+	    println(p)
         }
     }
 }
