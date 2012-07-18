@@ -8,13 +8,55 @@ import scala.collection.immutable.Set
 
 import java.io._
 
-abstract class BGMTerm { }
+abstract class BGMTerm {
+
+}
 case class BGMActive(s : String, arity : Int) extends BGMTerm
 case class BGMPassive(s : String, arity : Int) extends BGMTerm
 case class BGMRule(n : String, redex : String, reactum : String) extends BGMTerm
 case class BGMAgent(s : String) extends BGMTerm
 case class BGMProp(s : String, p : String) extends BGMTerm
 case class BGMNil extends BGMTerm
+
+object BGMTerm {
+    def toReactiveSystem(t : List[BGMTerm]) : BigraphicalReactiveSystem = {
+        val activeL : List[BGMActive] = t.filter(_ match {
+            case BGMActive(_,_) => true
+            case _ => false
+        }).map(_.asInstanceOf[BGMActive])
+        
+        val active = activeL.map(_.s)
+
+        val passiveL : List[BGMPassive] = t.filter(_ match {
+            case BGMPassive(_,_) => true
+            case _ => false
+        }).map(_.asInstanceOf[BGMPassive])
+        
+        val passive = passiveL.map(x => new Control(x.s,false))
+
+        val agentL = t.filter(_ match {
+            case BGMAgent(_) => true
+            case _ => false
+        }).head.asInstanceOf[BGMAgent]
+
+        val agent = MetaCalcParser.toBigraph(agentL.s, Set() ++ active)
+
+        val rules : List[ReactionRule] = t.filter(_ match {
+            case BGMRule(_,_,_) => true
+            case _ => false
+        }).map(rr => {
+            val rrp = rr.asInstanceOf[BGMRule]
+            val redex = MetaCalcParser.toBigraph(rrp.redex, Set() ++ active)
+            val reactum = MetaCalcParser.toBigraph(rrp.reactum, Set() ++ active)
+            new ReactionRule(redex,reactum)
+        })
+
+
+        //agent : Bigraph, signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting
+
+        new BigraphicalReactiveSystem(agent, Set() ++ active.map(new Control(_,true)) ++ passive, Set()++rules, null)
+    }
+}
 
 object BGMParser extends RegexParsers {
     def exp = "[^;]*".r

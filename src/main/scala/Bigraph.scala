@@ -15,7 +15,7 @@ class Bigraph(val V : Set[Node],
               val outer : Face
               ) {
 
-    //override def toString = "({"+V.mkString(",")+"},{"+E.mkString(",")+"},{"+ctrl.mkString(",")+"},{"+prnt.mkString(",")+"},{"+link.mkString(",")+"}) : "+inner+" → " + outer 
+    def toDetailString = "({"+V.mkString(",")+"},{"+E.mkString(",")+"},{"+ctrl.mkString(",")+"},{"+prnt.mkString(",")+"},{"+link.mkString(",")+"}) : "+inner+" → " + outer 
 
     def toMetaCalcString(p : Place) : String = {
         p match {
@@ -28,8 +28,10 @@ class Bigraph(val V : Set[Node],
                     case _ => false
                 }).map(x => x._2.toString).mkString(",")
                 
-                val p = if(pa != "") "[" + pa + "]" else ""
+                val pp = if(pa != "") "[" + pa + "]" else ""
 
+                val p = pp + "@" + n.id
+   
                 if(c.size == 0) {
                     ctrl(n) + p + ".nil"
                 } else if(c.size == 1) {
@@ -156,6 +158,11 @@ class Bigraph(val V : Set[Node],
     def instantiate(m : Match, D : Bigraph) : Bigraph = {
         var Vmap : Map[Place,Node] = V.map(x => x -> new Node(Node.newId)).toMap
 
+        println("Inst: Vmap: " + Vmap)
+        println("R': " + this.toDetailString)
+        println("Inst: D: " + D)
+        println("M: " + m)
+
         var Nctrl = ctrl.map(x => Vmap(x._1) -> x._2)
 
         val (prntmap : Map[Place,Place],inst : Map[Place,Place]) = prnt.map(x => {
@@ -218,7 +225,7 @@ class Bigraph(val V : Set[Node],
     })
 
     /** This is equality up to support equivalence. **/
-    override def equals(other : Any) : Boolean = other match {
+/*    override def equals(other : Any) : Boolean = other match {
         case that : Bigraph => {
             // Start by checking a few quick-to-verify properties
             if(that.V.size != V.size) return false
@@ -255,12 +262,17 @@ class Bigraph(val V : Set[Node],
 
                             link.forall(x => {
                                 val l = x._1 match {
-                                    case p : Port => new Port(X(p.node),p.id)
+                                    case p : Port => {
+                                        if(!(X contains p.node))
+                                            p
+                                        else
+                                            new Port(X(p.node),p.id)
+                                    }
                                     case n => n
                                 }
                                 x._2 match {
-                                    case n : Name => that.link(l) == n 
-                                    case g : Edge => that.link(l) == Y(g) 
+                                    case n : Name => (that.link contains l) && that.link(l) == n 
+                                    case g : Edge => (that.link contains l) && that.link(l) == Y(g) 
                                 }
                             })
                         }))
@@ -269,7 +281,7 @@ class Bigraph(val V : Set[Node],
             })
         }
         case _ => false
-    }
+    }*/
 
     def isActiveContext : Boolean = {
         

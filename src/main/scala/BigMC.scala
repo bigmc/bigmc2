@@ -2,6 +2,7 @@
 package org.bigraph.bigmc
 
 import org.bigraph.bigmc.parser.BGMParser
+import org.bigraph.bigmc.parser.BGMTerm
 
 import java.io.File
 
@@ -86,6 +87,10 @@ Usage: bigmc2 [options] <filename>
             parseOpts(args.toList)
 	    val p = BGMParser.parse(new File(BigMCOpts.filename))
 	    println(p)
+	    val rs = BGMTerm.toReactiveSystem(p)
+	    println(rs)
+
+	    rs.behave()
         }
     }
 }

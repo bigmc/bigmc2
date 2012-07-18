@@ -26,6 +26,7 @@ class BigraphicalReactiveSystem(agent : Bigraph, signature : Set[Control], rules
     def isComplete = done
 
     def step() : Unit = {
+        println("Step: " + workQueue)
         if(workQueue.size == 0) {
             done = true
             return ()
@@ -36,12 +37,16 @@ class BigraphicalReactiveSystem(agent : Bigraph, signature : Set[Control], rules
         workQueue = workQueue.tail
 
         for(r <- rules) yield {
+            println("Rule: " + r + " on " + w)
             val cand = r.apply(w).filter(c => sorting == null || sorting.check(c))
+
 
             cand.foreach(c => {
                 if(!(workQueue contains c)) {
                     workQueue = workQueue :+ c
                 }
+
+                println(c)
 
                 reactionGraph += (w ~+> c)(r)
             })
@@ -52,6 +57,7 @@ class BigraphicalReactiveSystem(agent : Bigraph, signature : Set[Control], rules
 
     def behave() : Unit = {
         while(!done) {
+            println("Behave()")
             step()
         }
     }
