@@ -106,7 +106,7 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
             MetaCalcParser.test("a.b | c[x].d")
         }
 	}
-    "a BigraphTranslator" should {
+    /*"a BigraphTranslator" should {
         "have one node for 'a.nil'" in {
             MetaCalcParser.toBigraph("a.nil").V.size mustEqual 1
         }
@@ -277,7 +277,7 @@ class MetaCalcParserSpecTest extends SpecificationWithJUnit {
                 }
         }
 
-    }
+    }*/
 
 }
 

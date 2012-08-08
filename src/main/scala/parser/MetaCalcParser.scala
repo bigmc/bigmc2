@@ -192,7 +192,7 @@ case class THole(index:Int) extends Term {
     def freeNames(bound : Set[Ident]) = Set()
     def substitute(x: Ident, y: Ident) = this
 }
-
+/*
 class BigraphTranslator(activity : Set[String]) {
     var nodes : Set[Node] = Set()
     var edges : Set[Edge] = Set()
@@ -272,7 +272,7 @@ class BigraphTranslator(activity : Set[String]) {
     }
     
 }
-
+*/
 object MetaCalcParser extends StandardTokenParsers {
     lexical.delimiters ++= List(".",",","$","[","]","(",")","||","|","|->","(ν")
     lexical.reserved ++= List("nil")
@@ -333,10 +333,11 @@ object MetaCalcParser extends StandardTokenParsers {
         }
     }
 
-    def toBigraph(s:String, activity : Set[String] = Set()) : Bigraph = {
+    def toBigraph(s:String, activity : Set[String] = Set()) : Term = {
         val t = apply(s)
-        val b = new BigraphTranslator(activity)
-        b.toBigraph(t)
+        //val b = new BigraphTranslator(activity)
+        //b.toBigraph(t)
+        TNil()
     }
 }
 

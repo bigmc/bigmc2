@@ -8,6 +8,8 @@ import scala.collection.immutable.Set
 
 import java.io._
 
+import org.bigraph.bigmc.Control
+
 abstract class BGMTerm {
 
 }
@@ -19,7 +21,7 @@ case class BGMProp(s : String, p : String) extends BGMTerm
 case class BGMNil extends BGMTerm
 
 object BGMTerm {
-    def toReactiveSystem(t : List[BGMTerm]) : BigraphicalReactiveSystem = {
+    def toReactiveSystem(t : List[BGMTerm]) : Unit = {
         val activeL : List[BGMActive] = t.filter(_ match {
             case BGMActive(_,_) => true
             case _ => false
@@ -41,7 +43,7 @@ object BGMTerm {
 
         val agent = MetaCalcParser.toBigraph(agentL.s, Set() ++ active)
 
-        val rules : List[ReactionRule] = t.filter(_ match {
+        /*val rules : List[ReactionRule] = t.filter(_ match {
             case BGMRule(_,_,_) => true
             case _ => false
         }).map(rr => {
@@ -49,12 +51,12 @@ object BGMTerm {
             val redex = MetaCalcParser.toBigraph(rrp.redex, Set() ++ active)
             val reactum = MetaCalcParser.toBigraph(rrp.reactum, Set() ++ active)
             new ReactionRule(redex,reactum)
-        })
+        })*/
 
 
         //agent : Bigraph, signature : Set[Control], rules : Set[ReactionRule], sorting : Sorting
 
-        new BigraphicalReactiveSystem(agent, Set() ++ active.map(new Control(_,true)) ++ passive, Set()++rules, null)
+       // new BigraphicalReactiveSystem(agent, Set() ++ active.map(new Control(_,true)) ++ passive, Set()++rules, null)
     }
 }
 

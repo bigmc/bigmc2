@@ -10,7 +10,7 @@ import org.bigraph.bigmc.parser._
 
 import scala.collection.immutable.Map
 import scala.collection.immutable.Set
-
+/*
 @RunWith(classOf[JUnitRunner])
 class MatchSpecTest extends SpecificationWithJUnit {
     "Candidate sets for 'a.$0' in 'a.b.nil'" should {
@@ -497,4 +497,4 @@ trait matchtest extends Scope {
     val matches = matcher.all
 }
 
-
+*/

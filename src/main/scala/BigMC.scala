@@ -90,7 +90,6 @@ Usage: bigmc2 [options] <filename>
 	    val rs = BGMTerm.toReactiveSystem(p)
 	    println(rs)
 
-	    rs.behave()
         }
     }
 }
